@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pickle Jaadi - Premium Andhra Storefront</title>
+    <link rel="icon" href="pickle-jaadi-logo.png" type="image/png">
+    <!-- Tailwind CSS CDN for sleek styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+        
+        :root {
+            --heritageBrown: #4B2C20;
+            --heritageGold: #D49D35;
+            --leafGreen: #557C3E;
+            --chiliRed: #9E1B1B;
+        }
+
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FDFBF7; color: var(--heritageBrown); -webkit-tap-highlight-color: transparent; }
+        .font-serif { font-family: 'Playfair Display', serif; }
+        
+        @keyframes heartBeatPulse {
+            0% { transform: scale(1); }
+            14% { transform: scale(1.15); }
+            28% { transform: scale(1); }
+            42% { transform: scale(1.15); }
+            70% { transform: scale(1); }
+        }
+        .animate-heart-click { animation: heartBeatPulse 0.4s ease-in-out; }
+
+        .carousel-slide {
+            opacity: 0;
+            transition: opacity 0.8s ease-in-out;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 1;
+        }
+        .carousel-slide.active {
+            opacity: 1;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .drawer-overlay { transition: opacity 0.3s ease-in-out; }
+        .drawer-sheet { transition: transform 0.3s ease-in-out; }
+
+        .product-card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- 0. SLIMLINE UTILITY BAR (ANNOUNCEMENT + TICKER IN ONE INTEGRATED BLOCK) -->
+    <div class="bg-[var(--heritageBrown)] text-white text-[10px] sm:text-xs py-2 px-4 shadow-sm relative z-[60] border-b border-stone-800">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-1.5 font-bold tracking-wide">
+            <div class="flex items-center gap-1.5 text-gray-200">
+                <span>🌍 Global Delivery Available</span>
+                <span class="text-stone-600 hidden sm:inline">|</span>
+                <span>🧑‍🍳 Freshly Prepared Post-Order (12-Hour Confirmation Window)</span>
+            </div>
+            <div class="flex items-center gap-2 text-[var(--heritageGold)]">
+                <span>⏳ BATCH DISPATCH IN:</span>
+                <span class="font-mono bg-black/40 px-2 py-0.5 rounded text-white" id="timer-hours">00</span>:
+                <span class="font-mono bg-black/40 px-2 py-0.5 rounded text-white" id="timer-minutes">00</span>:
+                <span class="font-mono bg-black/40 px-2 py-0.5 rounded text-white" id="timer-seconds">00</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. COMPACT NAVIGATION HEADER -->
+    <header class="sticky top-0 bg-[#FDFBF7]/95 backdrop-blur-md border-b border-gray-100 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <div class="flex items-center space-x-3 sm:space-x-8 shrink-0">
+                <button onclick="toggleMobileNavbarDrawer()" class="p-2 -ml-2 text-[var(--heritageBrown)] hover:text-[var(--heritageGold)] focus:outline-none md:hidden" title="Open Menu">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+
+                <a href="#" class="flex items-center space-x-2 group focus:outline-none" title="Home">
+                    <img src="pickle-jaadi-logo.png" alt="Pickle Jaadi Logo" class="h-12 w-auto object-contain" onerror="this.style.display='none'; document.getElementById('fallback-logo').classList.remove('hidden');">
+                    <div id="fallback-logo" class="hidden">
+                        <span class="block text-lg font-black font-serif text-[var(--heritageBrown)] leading-none">Pickle Jaadi</span>
+                    </div>
+                </a>
+
+                <nav class="hidden md:flex space-x-6 text-xs font-black text-gray-500 tracking-wider uppercase border-l border-gray-200 pl-6">
+                    <a href="#pickles" class="hover:text-[var(--heritageBrown)] transition-colors">Pickles</a>
+                    <a href="#powders" class="hover:text-[var(--heritageBrown)] transition-colors">Podis</a>
+                    <a href="#fryums" class="hover:text-[var(--heritageBrown)] transition-colors">Fryums</a>
+                    <button onclick="openInfoDrawer('about')" class="hover:text-[var(--heritageBrown)] transition-colors font-black uppercase text-xs">Story</button>
+                    <button onclick="openInfoDrawer('contact')" class="hover:text-[var(--heritageBrown)] transition-colors font-black uppercase text-xs">Contact</button>
+                </nav>
+            </div>
+
+            <div class="flex items-center space-x-1 sm:space-x-2 shrink-0">
+                <button onclick="toggleHeaderSearchDropdown()" class="p-2 text-gray-500 hover:text-[var(--heritageBrown)] transition-colors" title="Search"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></button>
+                <button onclick="toggleWishlistModal()" class="relative p-2 text-gray-500 hover:text-[var(--chiliRed)] transition-colors" title="Wishlist"><svg class="w-5 h-5" id="main-nav-wishlist-heart-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg><span id="global-wishlist-badge" class="absolute top-1 right-1 bg-[var(--leafGreen)] text-white text-[8px] font-black px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                <button onclick="toggleCartModal()" class="relative p-2 text-gray-500 hover:text-[var(--leafGreen)] transition-colors" title="Bag"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg><span id="global-cart-badge" class="absolute top-1 right-1 bg-[var(--chiliRed)] text-white text-[8px] font-black px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                <button onclick="toggleAccountModal()" class="p-2 text-gray-500 hover:text-[var(--heritageBrown)] flex items-center gap-1 focus:outline-none" title="Account">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                    <div class="flex flex-col items-start leading-none">
+                        <span id="header-user-greeting" class="text-[10px] font-black hidden text-[var(--leafGreen)] tracking-tight"></span>
+                        <span id="header-user-badge" class="text-[7px] font-extrabold uppercase bg-[var(--heritageGold)] text-[var(--heritageBrown)] px-1 rounded-sm mt-0.5 tracking-wide hidden">Jadi Club</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+        
+        <!-- COMPACT OVERLAY SEARCH DROPDOWN -->
+        <div id="header-search-dropdown-panel" class="w-full bg-white border-b border-gray-200 shadow-inner overflow-hidden max-h-0 transition-all duration-300 ease-in-out">
+            <div class="max-w-3xl mx-auto px-4 py-3 flex items-center gap-3">
+                <div class="relative flex-grow">
+                    <input type="text" id="product-search-input" oninput="filterCatalogItemsFuzzy(this.value)" placeholder="Search pickles, powders, fryums..." class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg text-sm bg-gray-50 focus:outline-none focus:border-[var(--heritageGold)] font-medium">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
+                </div>
+                <button onclick="toggleHeaderSearchDropdown()" class="text-xs font-bold text-gray-500 hover:text-[var(--chiliRed)] px-3 py-2 border rounded-lg bg-gray-50">Cancel</button>
+            </div>
+        </div>
+        <div id="search-status-feedback" class="bg-[var(--chiliRed)] text-white text-xs font-semibold text-center py-1.5 hidden">No matching varieties found.</div>
+    </header>
+
+    <!-- MOBILE NAVIGATION DRAWER -->
+    <div id="mobile-navbar-drawer" class="fixed inset-0 z-50 overflow-hidden hidden">
+        <div class="absolute inset-0 bg-gray-600/40 backdrop-blur-sm" onclick="toggleMobileNavbarDrawer()"></div>
+        <div class="pointer-events-none fixed inset-y-0 left-0 flex max-w-full pr-16">
+            <div class="pointer-events-auto w-64 bg-[#FDFBF7] p-6 shadow-2xl flex flex-col border-r border-gray-100 justify-between">
+                <div class="space-y-6">
+                    <div class="font-serif font-black text-xl border-b pb-3 text-[var(--heritageBrown)]">Categories</div>
+                    <nav class="flex flex-col space-y-4 text-xs font-black text-[var(--heritageBrown)] uppercase tracking-wider">
+                        <a href="#pickles" onclick="toggleMobileNavbarDrawer()">🌶️ Andhra Pickles</a>
+                        <a href="#powders" onclick="toggleMobileNavbarDrawer()">🧄 Traditional Podis</a>
+                        <a href="#fryums" onclick="toggleMobileNavbarDrawer()">☀️ Sun-Dried Fryums</a>
+                        <button onclick="toggleMobileNavbarDrawer(); openInfoDrawer('about');" class="text-left font-black uppercase text-xs">Our Story</button>
+                        <button onclick="toggleMobileNavbarDrawer(); openInfoDrawer('contact');" class="text-left font-black uppercase text-xs">Contact Us</button>
+                    </nav>
+                </div>
+                <div class="text-[10px] text-gray-400 font-medium">© 2026 Pickle Jaadi India.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. 4-BANNER DYNAMIC HERO SLIDESHOW CAROUSEL -->
+    <section class="relative w-full bg-stone-100 border-b border-gray-200 overflow-hidden min-h-[180px] sm:min-h-[380px]">
+        
+        <!-- SLIDE 1: MAIN BRAND & PICKLE SHOWCASE -->
+        <div class="carousel-slide active" id="hero-slide-1">
+            <img src="Pickles1-banner.jpg" alt="Pickle Jaadi - Traditional Andhra Pickles Collection" class="w-full h-full object-cover object-center block">
+        </div>
+
+        <!-- SLIDE 2: ANDHRA PICKLES SHOWCASE -->
+        <div class="carousel-slide" id="hero-slide-2">
+            <a href="#pickles" class="block w-full h-full min-h-[180px] sm:min-h-[380px]">
+                <img src="Pickles-banner.jpg" alt="Artisanal Andhra Pickles (Pachadi)" class="w-full h-full object-cover object-center block">
+            </a>
+        </div>
+
+        <!-- SLIDE 3: TRADITIONAL SPICE POWDERS -->
+        <div class="carousel-slide" id="hero-slide-3">
+            <a href="#powders" class="block w-full h-full min-h-[180px] sm:min-h-[380px]">
+                <img src="Podi-banner.jpg" alt="Authentic Podis Collection" class="w-full h-full object-cover object-center block">
+            </a>
+        </div>
+
+        <!-- SLIDE 4: SUN-DRIED FRYUMS (VADIYALU) -->
+        <div class="carousel-slide" id="hero-slide-4">
+            <a href="#fryums" class="block w-full h-full min-h-[180px] sm:min-h-[380px]">
+                <img src="Fryums-banner.jpg" alt="Sun-Dried Fryums and Papads" class="w-full h-full object-cover object-center block">
+            </a>
+        </div>
+
+        <!-- CONTROLS BUTTONS NAVIGATION -->
+        <button onclick="changeHeroSlideIndex(-1)" class="absolute left-3 top-1/2 -translate-y-1/2 bg-black/10 hover:bg-black/30 text-white rounded-full p-1.5 z-20 focus:outline-none">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <button onclick="changeHeroSlideIndex(1)" class="absolute right-3 top-1/2 -translate-y-1/2 bg-black/10 hover:bg-black/30 text-white rounded-full p-1.5 z-20 focus:outline-none">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </button>
+
+        <!-- DOTS PROGRESS INDICATORS -->
+        <div class="absolute bottom-3 left-1/2 -translate-x-1/2 flex space-x-1.5 z-20">
+            <button onclick="setHeroActiveSlide(0)" class="w-2 h-2 rounded-full bg-white shadow-sm" id="hero-dot-0"></button>
+            <button onclick="setHeroActiveSlide(1)" class="w-2 h-2 rounded-full bg-white/40 shadow-sm" id="hero-dot-1"></button>
+            <button onclick="setHeroActiveSlide(2)" class="w-2 h-2 rounded-full bg-white/40 shadow-sm" id="hero-dot-2"></button>
+            <button onclick="setHeroActiveSlide(3)" class="w-2 h-2 rounded-full bg-white/40 shadow-sm" id="hero-dot-3"></button>
+        </div>
+
+    </section>
+
+    <!-- PRODUCT CATALOG SECTIONS -->
+    <main class="flex-grow">
+        <!-- 3. PICKLES SECTION -->
+        <section id="pickles" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <div class="border-b border-gray-100 pb-3 mb-6 flex flex-col sm:flex-row sm:items-baseline justify-between gap-1.5">
+                <h2 class="text-2xl font-black font-serif text-[var(--heritageBrown)]">Andhra Pickles (Pachadi)</h2>
+                <p class="text-[10px] font-bold text-[var(--chiliRed)] bg-red-50 px-2.5 py-0.5 rounded uppercase tracking-wider">Garlic Option: With & Without Garlic (వెల్లుల్లి లేకుండా)</p>
+            </div>
+            <div id="pickle-grid-mount" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- 4. POWDERS SECTION -->
+        <section id="powders" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <h2 class="text-2xl font-black font-serif text-[var(--heritageBrown)] border-b border-gray-100 pb-3 mb-6">Traditional Spice Blends (Podis)</h2>
+            <div id="podi-grid-mount" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- 5. SUN-DRIED FRYUMS SECTION -->
+        <section id="fryums" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+            <h2 class="text-2xl font-black font-serif text-[var(--heritageBrown)] border-b border-gray-100 pb-3 mb-6">Sun-Dried Fryums & Papads (Vadiyalu)</h2>
+            <div id="fryum-grid-mount" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- REVIEWS MATRICES -->
+        <section id="testimonials" class="bg-[#F6F3EC] py-12 border-t border-b border-stone-200/40">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h2 class="text-xl font-black font-serif mb-6 text-[var(--heritageBrown)]">What Our Kitchen Family Says</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                    <div class="bg-white p-4 rounded-xl border border-gray-100 text-left shadow-sm">
+                        <div class="text-[var(--heritageGold)] text-xs mb-1.5">★★★★★</div>
+                        <p class="text-[11px] italic text-gray-600">"The Dosa-Avakaya tastes exactly like my grandma's preparations. Delivery to California was fast and clean."</p>
+                        <div class="mt-3 text-[10px] font-black text-gray-400">— Lakshmi K., USA NRI</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-gray-100 text-left shadow-sm">
+                        <div class="text-[var(--heritageGold)] text-xs mb-1.5">★★★★★</div>
+                        <p class="text-[11px] italic text-gray-600">"Exceptional Kandi Podi. The aroma of perfectly roasted dals is beautiful. Professional leakproof scaling."</p>
+                        <div class="mt-3 text-[10px] font-black text-gray-400">— Rajesh V., Bengaluru</div>
+                    </div>
+                    <div class="bg-white p-4 rounded-xl border border-gray-100 text-left shadow-sm">
+                        <div class="text-[var(--heritageGold)] text-xs mb-1.5">★★★★★</div>
+                        <p class="text-[11px] italic text-gray-600">"Challa Mirapakayallu are crisp and sun-dried perfectly. Excellent accompaniment for curd rice."</p>
+                        <div class="mt-3 text-[10px] font-black text-gray-400">— Sarada M., Hyderabad</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- TABBED BOTTOM DRAWER CONTENT SHEETS LAYER (WITH ACCESSIBLE GO BACK HEADERS) -->
+    <div id="global-info-drawer-overlay" class="drawer-overlay fixed inset-0 bg-black/40 backdrop-blur-sm z-[100] hidden opacity-0 transition-all duration-300" onclick="closeInfoDrawer()">
+        <div id="global-info-drawer-sheet" class="drawer-sheet fixed inset-x-0 bottom-0 max-h-[80vh] bg-[#FDFBF7] rounded-t-xl shadow-2xl p-5 overflow-y-auto transform translate-y-full transition-all duration-300 flex flex-col" onclick="event.stopPropagation()">
+            
+            <!-- MOBILE GO BACK TOP NAVIGATION LINE -->
+            <div class="flex items-center justify-between border-b pb-2 mb-3 shrink-0">
+                <button onclick="closeInfoDrawer()" class="flex items-center gap-1.5 text-xs font-bold text-gray-500 hover:text-[var(--heritageBrown)] focus:outline-none">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                    <span>← Go Back</span>
+                </button>
+                <span class="text-[10px] font-black uppercase text-stone-400 tracking-widest">Information Desk</span>
+            </div>
+            
+            <div class="flex border-b overflow-x-auto gap-4 pb-2 text-[11px] font-black uppercase tracking-wider shrink-0 text-gray-400">
+                <button id="tab-btn-about" onclick="switchInfoDrawerTab('about')" class="pb-1 border-b-2 border-transparent whitespace-nowrap">About Us</button>
+                <button id="tab-btn-contact" onclick="switchInfoDrawerTab('contact')" class="pb-1 border-b-2 border-transparent whitespace-nowrap">Contact Us</button>
+                <button id="tab-btn-shipping" onclick="switchInfoDrawerTab('shipping')" class="pb-1 border-b-2 border-transparent whitespace-nowrap">Shipping & Payment</button>
+                <button id="tab-btn-refunds" onclick="switchInfoDrawerTab('refunds')" class="pb-1 border-b-2 border-transparent whitespace-nowrap">Returns & Refunds</button>
+                <button id="tab-btn-privacy" onclick="switchInfoDrawerTab('privacy')" class="pb-1 border-b-2 border-transparent whitespace-nowrap">Privacy</button>
+                <button id="tab-btn-terms" onclick="switchInfoDrawerTab('terms')" class="pb-1 border-b-2 border-transparent whitespace-nowrap">Terms</button>
+            </div>
+
+            <div class="flex-grow py-3 text-xs text-stone-700 leading-relaxed space-y-3">
+                <div id="tab-pane-about" class="tab-content-panel hidden space-y-2">
+                    <h3 class="font-serif font-black text-base text-[var(--heritageBrown)]">Our Traditional Kitchen Story</h3>
+                    <p>Welcome to <strong>Pickle Jaadi</strong>, where we honor age-old traditional recipes passed down through generations in coastal Andhra Pradesh.</p>
+                    <p>Every single batch of our authentic heritage recipes follows our dedicated <strong>Fresh Post-Order Preparation Model</strong>. We never warehouse pre-made or stale food stocks. The moment your automated invoice transitions into our messaging terminal boards, our culinary kitchen teams trigger raw ingredient scaling and complete hand-crafted production cycles inside a locked 12-hour confirmation and execution window, ensuring pristine structural integrity and flavor preservation before express transit dispatch.</p>
+                </div>
+                <div id="tab-pane-contact" class="tab-content-panel hidden space-y-3">
+                    <h3 class="font-serif font-black text-base text-[var(--heritageBrown)]">Connect With Our Kitchen Desks</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div class="border rounded-xl p-3 bg-white shadow-sm">
+                            <span class="block text-[9px] font-black uppercase text-[var(--leafGreen)]">Domestic Desk (India)</span>
+                            <p class="text-sm font-bold mt-0.5">📞 +91 7989350068</p>
+                        </div>
+                        <div class="border rounded-xl p-3 bg-white shadow-sm">
+                            <span class="block text-[9px] font-black uppercase text-[var(--heritageGold)]">Global Desk (International)</span>
+                            <p class="text-sm font-bold mt-0.5">🇸🇬 +65 9116 9217</p>
+                        </div>
+                    </div>
+                    <p class="text-[11px] pt-1">📍 <strong>Address:</strong> Door No. 12-4-56, Ramaraopeta, Near Main Market Tower, Kakinada - 533001, Andhra Pradesh, India.<br>✉️ <strong>Email:</strong> picklejaadiindia@gmail.com</p>
+                </div>
+                <div id="tab-pane-shipping" class="tab-content-panel hidden space-y-2">
+                    <h3 class="font-serif font-black text-base text-[var(--heritageBrown)]">Shipping, Export & Payment Guidelines</h3>
+                    <p><strong>Payment Processing:</strong> Final billing handles cleanly via secure customized payment interfaces (UPI links, Google Pay, or dynamic international credit checkout layers) over WhatsApp conversation boards.</p>
+                    <p><strong>Dispatch:</strong> Following fresh post-order preparation, domestic air parcels arrive within 2-4 days. International global express networks clear customs and deliver within 5-9 business days.</p>
+                </div>
+                <div id="tab-pane-refunds" class="tab-content-panel hidden space-y-2">
+                    <h3 class="font-serif font-black text-base text-[var(--heritageBrown)]">Compliant Return & Refund Guarantee</h3>
+                    <p>Because our items comprise fresh, perishable food formulations, regular returns are restricted under health laws. However, if a pack suffers any damage during transit, send a photo to your WhatsApp agent within 24 hours for a <strong>100% full refund or free replacement</strong>.</p>
+                </div>
+                <div id="tab-pane-privacy" class="tab-content-panel hidden space-y-2">
+                    <h3 class="font-serif font-black text-base text-[var(--heritageBrown)]">Data Protection Policy</h3>
+                    <p>Any operational records collected through our site (name, email, phone, and address) are housed strictly inside local device browser tokens. We never warehouse your metadata or lease it to digital marketing outfits.</p>
+                </div>
+                <div id="tab-pane-terms" class="tab-content-panel hidden space-y-2">
+                    <h3 class="font-serif font-black text-base text-[var(--heritageBrown)]">Terms & Conditions of Service</h3>
+                    <p>Pickle Jaadi provides standard references to item menus. All checkout parameters map securely to verified peer-to-peer messaging streams over WhatsApp. Customers handle destination custom laws if shipping high-weight bundles abroad.</p>
+                </div>
+            </div>
+
+            <button onclick="closeInfoDrawer()" class="w-full bg-[var(--heritageBrown)] text-white text-xs font-bold py-2.5 rounded-xl uppercase tracking-wider shrink-0 mt-2">Close Window</button>
+        </div>
+    </div>
+
+    <!-- LOG-IN & SIGN-UP ACCOUNT OVERLAY SYSTEM (WITH SECURE PASSWORDS DESIGN + BACK NAVIGATION INDICATORS) -->
+    <div id="account-modal" class="fixed inset-0 z-[60] overflow-hidden hidden">
+        <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="toggleAccountModal()"></div>
+        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-sm bg-white p-5 shadow-2xl flex flex-col border-l border-gray-100 justify-between">
+                <div class="overflow-y-auto flex-grow pr-0.5">
+                    <div class="flex items-center justify-between border-b pb-3 mb-4">
+                        <button onclick="toggleAccountModal()" class="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-xs font-bold uppercase tracking-wider focus:outline-none">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            <span>Go Back</span>
+                        </button>
+                        <h2 class="text-sm font-black font-serif text-[var(--heritageBrown)] flex items-center gap-2">
+                            👤 <span id="account-modal-title-text">Member Gateway</span>
+                        </h2>
+                    </div>
+
+                    <!-- PRE-AUTH GATEWAY: TAB SELECTION -->
+                    <div id="account-gate-tabs" class="flex gap-2 p-1 bg-stone-100 rounded-lg mb-4 text-xs font-bold uppercase tracking-wider">
+                        <button id="auth-tab-btn-signin" onclick="switchAuthFormScreenState('signin')" class="flex-1 text-center py-1.5 rounded transition-all bg-white text-[var(--heritageBrown)] shadow-sm">Sign In</button>
+                        <button id="auth-tab-btn-register" onclick="switchAuthFormScreenState('register')" class="flex-1 text-center py-1.5 rounded transition-all text-gray-500">Sign Up</button>
+                    </div>
+
+                    <!-- FORM 1: LOGIN FORM WITH SECURE PASSWORD INPUT -->
+                    <div id="auth-form-container-signin" class="space-y-3">
+                        <p class="text-[11px] text-gray-400 font-medium leading-normal">Enter your credentials to safely restore your preferences and auto-fill records instantly.</p>
+                        <div class="space-y-2.5">
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1">Email Address</label>
+                                <input type="email" id="login-email-field" placeholder="name@domain.com" class="w-full border rounded-lg p-2.5 text-xs bg-stone-50/50 focus:outline-none focus:border-[var(--heritageGold)] font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1">Account Password</label>
+                                <input type="password" id="login-password-field" placeholder="••••••••" class="w-full border rounded-lg p-2.5 text-xs bg-stone-50/50 focus:outline-none focus:border-[var(--heritageGold)] font-medium">
+                            </div>
+                        </div>
+                        <button onclick="processCustomerAccountLoginAction()" class="w-full bg-[var(--heritageBrown)] text-white text-xs font-black py-2.5 rounded-lg uppercase tracking-wider shadow-sm mt-2">Access Account</button>
+                    </div>
+
+                    <!-- FORM 2: ENHANCED SIGN-UP REGISTRATION SYSTEM WITH PASSWORD SPECIFICATION -->
+                    <div id="auth-form-container-register" class="space-y-3 hidden">
+                        <p class="text-[11px] text-gray-400 font-medium leading-normal">Create an account with a password to lock your favorite selections and billing information securely.</p>
+                        <div class="space-y-2.5">
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1">Full Name *</label>
+                                <input type="text" id="reg-fullname-field" placeholder="Sri Kumar" class="w-full border rounded-lg p-2.5 text-xs bg-stone-50/50 focus:outline-none focus:border-[var(--heritageGold)] font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1">Email Address *</label>
+                                <input type="email" id="reg-email-field" placeholder="sri@domain.com" class="w-full border rounded-lg p-2.5 text-xs bg-stone-50/50 focus:outline-none focus:border-[var(--heritageGold)] font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1">Choose Password *</label>
+                                <input type="password" id="reg-password-field" placeholder="Minimum 6 characters" class="w-full border rounded-lg p-2.5 text-xs bg-stone-50/50 focus:outline-none focus:border-[var(--heritageGold)] font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1">WhatsApp Number *</label>
+                                <input type="tel" id="reg-phone-field" placeholder="+91 98765 43210" class="w-full border rounded-lg p-2.5 text-xs bg-stone-50/50 focus:outline-none focus:border-[var(--heritageGold)] font-medium">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black uppercase tracking-wider text-gray-500 mb-1">Default Shipping Address *</label>
+                                <textarea id="reg-address-field" rows="2" placeholder="Street Name, Area, City, Pin Code, Country..." class="w-full border rounded-lg p-2.5 text-xs bg-stone-50/50 focus:outline-none focus:border-[var(--heritageGold)] font-medium"></textarea>
+                            </div>
+                        </div>
+                        <button onclick="processCustomerAccountSignUpAction()" class="w-full bg-[var(--heritageGold)] text-[var(--heritageBrown)] text-xs font-black py-2.5 rounded-lg uppercase tracking-wider shadow-sm mt-2">Register Profile</button>
+                    </div>
+
+                    <!-- PREMIUM POST-AUTH MEMBER PROFILE DASHBOARD VIEW WITH DYNAMIC BADGE -->
+                    <div id="auth-dashboard-container" class="space-y-4 hidden">
+                        <div class="bg-gradient-to-br from-[#FDFBF7] to-[#F6F3EC] border border-stone-200/60 p-4 rounded-xl shadow-sm text-xs space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="inline-block bg-[var(--leafGreen)] text-white text-[9px] font-black px-2 py-0.5 rounded uppercase tracking-wider">Active Kitchen Member</span>
+                                <span id="dash-display-badge" class="inline-block bg-[var(--heritageGold)] text-[var(--heritageBrown)] text-[9px] font-black px-2 py-0.5 rounded border border-[#C4902F] shadow-sm uppercase tracking-wide font-mono">👑 Verified Jadi Club</span>
+                            </div>
+                            <div class="font-serif font-black text-base text-[var(--heritageBrown)] pt-1" id="dash-display-welcome-name">Namaste, Guest</div>
+                            <div class="text-stone-500 pt-1 space-y-1">
+                                <div>📧 <span id="dash-display-email" class="font-medium"></span></div>
+                                <div>📱 <span id="dash-display-phone" class="font-medium"></span></div>
+                                <div class="border-t pt-2 mt-2">
+                                    <span class="block text-[9px] font-black uppercase text-gray-400 tracking-wider">Primary Delivery Destination:</span>
+                                    <span id="dash-display-address" class="block text-stone-700 font-medium leading-relaxed pt-0.5"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- LOCAL ORDER LOGS TRANSACTION SUMMARY -->
+                        <div class="space-y-2">
+                            <h4 class="text-[10px] font-black uppercase text-gray-400 tracking-wider">📦 Recent WhatsApp Invoices</h4>
+                            <div class="border border-gray-100 rounded-xl p-3 bg-stone-50/50 text-center py-5 text-[11px] text-gray-400 font-medium" id="dash-orders-log-mount">
+                                No active session transactions found on this node.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PERSISTENT REVENUE FOOTER ROUTE ACCORDING TO AUTH LOGIC -->
+                <div id="auth-drawer-footer-action-block" class="pt-3 border-t">
+                    <button onclick="handleUserSignOutAction()" class="w-full text-center text-xs text-[var(--chiliRed)] font-black hover:underline uppercase tracking-wider py-1">Disconnect Session</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SHOPPING BAG MODAL (WITH PREMIUM BACK INDICATORS) -->
+    <div id="cart-drawer-modal" class="fixed inset-0 z-[60] overflow-hidden hidden">
+        <div class="absolute inset-0 bg-black/40" onclick="toggleCartModal()"></div>
+        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-md bg-white p-5 shadow-2xl flex flex-col justify-between border-l">
+                <div class="overflow-y-auto flex-grow pr-1">
+                    <div class="flex items-center justify-between border-b pb-2 mb-3">
+                        <button onclick="toggleCartModal()" class="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-xs font-bold uppercase tracking-wider focus:outline-none">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            <span>Go Back</span>
+                        </button>
+                        <h2 class="text-base font-black font-serif text-[var(--heritageBrown)]">🛒 Your Basket</h2>
+                    </div>
+                    <div id="cart-items-container" class="space-y-2 mb-4"></div>
+                    
+                    <div class="bg-stone-50 rounded-xl p-3 border border-stone-200/60 space-y-2.5">
+                        <h4 class="text-[10px] font-black uppercase text-gray-500 tracking-wider">📦 Dispatch & Delivery Parameters</h4>
+                        
+                        <!-- Freshness Prep Operational Commitment Alert -->
+                        <div class="bg-emerald-50 border border-emerald-200/60 p-2.5 rounded-lg text-[11px] text-emerald-800 leading-normal flex items-start gap-1.5 font-medium">
+                            <span>🧑‍🍳</span>
+                            <div><strong>Freshness Lock:</strong> This order will be prepared freshly from scratch only <em>after</em> submission inside a strict 12-hour kitchen confirmation block.</div>
+                        </div>
+
+                        <div class="flex gap-2 p-0.5 bg-stone-200/50 rounded-lg">
+                            <button id="ship-type-domestic" onclick="setCheckoutShippingDestinationType('Domestic')" class="flex-1 text-center py-1 rounded text-[11px] font-black bg-white text-[var(--heritageBrown)] shadow-sm">Within India</button>
+                            <button id="ship-type-intl" onclick="setCheckoutShippingDestinationType('International')" class="flex-1 text-center py-1 rounded text-[11px] font-bold text-gray-500">Global Export</button>
+                        </div>
+                        <div class="space-y-1.5">
+                            <input type="text" id="checkout-cust-name" placeholder="Customer Full Name *" class="w-full border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[var(--heritageGold)] font-medium">
+                            <input type="text" id="checkout-cust-phone" placeholder="WhatsApp Number *" class="w-full border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[var(--heritageGold)] font-medium">
+                            <select id="checkout-garlic-pref" class="w-full border bg-white rounded px-2 py-1.5 text-xs focus:outline-none font-bold">
+                                <option value="With Garlic">With Garlic (వెల్లుల్లితో)</option>
+                                <option value="Without Garlic">Without Garlic (వెల్లుల్లి లేకుండా)</option>
+                            </select>
+                            <textarea id="checkout-cust-address" rows="2" placeholder="Complete Address, Zip Code, Country..." class="w-full border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[var(--heritageGold)] font-medium"></textarea>
+                        </div>
+                        <div id="intl-regulatory-banner" class="bg-amber-50 border border-amber-200 p-2 rounded-[9px] text-[10px] text-amber-800 hidden leading-normal">
+                            ⚠️ <strong>Export Notice:</strong> Passport scans or KYC indices may be requested via WhatsApp to safely clear international cargo flights.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-t pt-3 bg-white mt-3 space-y-2.5">
+                    <div class="flex justify-between font-black text-base text-[var(--heritageBrown)]"><span>Total Bill:</span><span id="cart-total-value">₹0.00</span></div>
+                    <button onclick="downloadPdfReceipt()" class="w-full border-2 border-[var(--heritageBrown)] text-[var(--heritageBrown)] py-2.5 rounded-lg font-black flex items-center justify-center gap-2 text-xs uppercase tracking-wider hover:bg-stone-50 transition-colors">
+                        📄 Download PDF Receipt
+                    </button>
+                    <button onclick="compileAndRouteWhatsAppOrderWorkflow()" class="w-full bg-[#25D366] text-white py-2.5 rounded-lg font-black flex items-center justify-center gap-2 shadow text-xs uppercase tracking-wider">
+                        🚀 Secure Checkout via WhatsApp
+                    </button>
+                    <p id="checkout-desk-hint" class="text-[10px] text-center text-gray-400 font-medium">Orders route to <span class="font-bold text-[var(--heritageBrown)]">+91 7989350068</span> (India)</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- WISHLIST DRAWER (WITH COMPACT BACK LINK INDICATORS) -->
+    <div id="wishlist-drawer-modal" class="fixed inset-0 z-[60] overflow-hidden hidden">
+        <div class="absolute inset-0 bg-black/40" onclick="toggleWishlistModal()"></div>
+        <div class="absolute inset-y-0 right-0 max-w-full flex pl-10">
+            <div class="w-screen max-w-sm bg-white p-5 shadow-2xl flex flex-col border-l">
+                <div class="flex items-center justify-between border-b pb-2 mb-3">
+                    <button onclick="toggleWishlistModal()" class="flex items-center gap-1 text-gray-400 hover:text-gray-600 text-xs font-bold uppercase tracking-wider focus:outline-none">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                        <span>Go Back</span>
+                    </button>
+                    <h2 class="text-base font-black font-serif text-[var(--heritageBrown)]">❤️ Favorites</h2>
+                </div>
+                <div id="wishlist-items-container" class="flex-grow overflow-y-auto space-y-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- NORM FOOTER -->
+    <footer class="bg-[var(--heritageBrown)] text-stone-400 py-8 border-t border-stone-800 text-xs mt-auto">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-6 border-b border-stone-800 pb-6 mb-6 text-center md:text-left">
+                <div class="flex items-start gap-3">
+                    <div class="hidden sm:flex w-9 h-9 rounded-full bg-stone-800/60 border border-stone-700 items-center justify-center shrink-0 mt-0.5">
+                        <svg class="w-4 h-4 text-[var(--heritageGold)]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.75" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                    </div>
+                    <div>
+                        <span class="text-lg font-serif text-white font-black">Pickle Jaadi</span>
+                        <p class="text-[11px] text-stone-400 mt-0.5 max-w-xs">On-demand traditional cooking, packing, and dispatch matrices.</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-center gap-x-5 gap-y-2.5 font-bold text-stone-400 text-[11px]">
+                    <button onclick="openInfoDrawer('about')" class="footer-link group flex items-center gap-1.5 hover:text-white transition-colors">
+                        <svg class="w-3.5 h-3.5 text-[var(--heritageGold)] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                        Our Story
+                    </button>
+                    <button onclick="openInfoDrawer('contact')" class="footer-link group flex items-center gap-1.5 hover:text-white transition-colors">
+                        <svg class="w-3.5 h-3.5 text-[var(--heritageGold)] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+                        Contact
+                    </button>
+                    <button onclick="openInfoDrawer('shipping')" class="footer-link group flex items-center gap-1.5 hover:text-white transition-colors">
+                        <svg class="w-3.5 h-3.5 text-[var(--heritageGold)] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4"/></svg>
+                        Shipping
+                    </button>
+                    <button onclick="openInfoDrawer('refunds')" class="footer-link group flex items-center gap-1.5 hover:text-white transition-colors">
+                        <svg class="w-3.5 h-3.5 text-[var(--heritageGold)] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        Returns
+                    </button>
+                    <button onclick="openInfoDrawer('privacy')" class="footer-link group flex items-center gap-1.5 hover:text-white transition-colors">
+                        <svg class="w-3.5 h-3.5 text-[var(--heritageGold)] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+                        Privacy
+                    </button>
+                    <button onclick="openInfoDrawer('terms')" class="footer-link group flex items-center gap-1.5 hover:text-white transition-colors">
+                        <svg class="w-3.5 h-3.5 text-[var(--heritageGold)] group-hover:text-white transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                        Terms
+                    </button>
+                </div>
+                <div class="flex gap-3 font-black uppercase text-[10px] tracking-wider">
+                    <a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-stone-700 hover:border-[var(--heritageGold)] hover:text-white transition-colors">
+                        <svg class="w-3.5 h-3.5 text-[var(--heritageGold)] group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                        Instagram
+                    </a>
+                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" class="group flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-stone-700 hover:border-[var(--heritageGold)] hover:text-white transition-colors">
+                        <svg class="w-3.5 h-3.5 text-[var(--heritageGold)] group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        Facebook
+                    </a>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row justify-between items-center text-[10px] text-stone-500 font-bold uppercase text-center sm:text-left gap-3">
+                <div class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-stone-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    © 2026 Pickle Jaadi India. All Rights Reserved.
+                </div>
+                <div class="flex items-center gap-1.5">
+                    <svg class="w-3.5 h-3.5 text-[var(--leafGreen)] shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"/></svg>
+                    FSSAI Registered Unit Matrix
+                </div>
+            </div>
+            <div class="mt-5 pt-4 border-t border-stone-800/50 flex items-center justify-center gap-2">
+                <svg class="w-3 h-3 text-stone-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span class="text-[10px] text-stone-500 font-medium tracking-widest uppercase">Powered by</span>
+                <span class="text-[11px] font-serif font-bold text-[var(--heritageGold)] tracking-wide normal-case">WINR Technologies</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- STATE MANAGEMENT LOGIC SCRIPTS -->
+    <script>
+        const CLOUD_PICKLES_DB = [
+            { id: "dosa-avakaya", name: "Dosa-Avakaya (Yellow Cucumber)", desc: "Crisp cucumber blocks in custom mustard-chili marinades.", price: 800, unit: "KG", emoji: "🥒" },
+            { id: "avakaya-mango", name: "Avakaya (Mango)", desc: "The pride of Andhra—firm green mango block recipes.", price: 800, unit: "KG", emoji: "🥭" },
+            { id: "bellam-avakaya", name: "Bellam Avakaya (Jaggery Mango)", desc: "Sweet-sour recipe blending molten jaggery matrices.", price: 800, unit: "KG", emoji: "🍯" },
+            { id: "chintakaya-pandu", name: "Chintakaya Pandumirchi", desc: "Raw stone-ground tamarind pulp with ripe red chilis.", price: 800, unit: "KG", emoji: "🍂" },
+            { id: "pandu-mirchi", name: "Pandu Mirchi (Red Chilli)", desc: "Fiery crimson paste made from freshly crushed winter chilis.", price: 800, unit: "KG", emoji: "🔴" },
+            { id: "menthikaya", name: "Menthikaya (Mango)", desc: "Traditional mango chunks hit with fenugreek powder.", price: 800, unit: "KG", emoji: "🌿" },
+            { id: "tomato-pickle", name: "Tomato", desc: "Slow-cooked local tomatoes and ground mustard.", price: 800, unit: "KG", emoji: "🍅" },
+            { id: "gongura-pachadi", name: "Gongura", desc: "Sorrel leaves wilted and ground with cold-pressed oils.", price: 800, unit: "KG", emoji: "🌱" },
+            { id: "allam", name: "Allam (Ginger)", desc: "Zesty ginger root sweetened with country jaggery blocks.", price: 800, unit: "KG", emoji: "🫚" },
+            { id: "kakarakaya", name: "Kakarakaya (Bitter Gourd)", desc: "Bitter gourd wheels flash-fried and tossed in dark masalas.", price: 800, unit: "KG", emoji: "🥒" },
+            { id: "usirikaya", name: "Usirikaya (Gooseberry)", desc: "Whole vitamin-rich amla berries saturated in cold oils.", price: 800, unit: "KG", emoji: "🟢" },
+            { id: "nimmakaya", name: "Nimmakaya (Lemon)", desc: "Classic salt-cured sour lemon wedges offering a perfect punch.", price: 800, unit: "KG", emoji: "🍋" },
+            { id: "debbakaya", name: "Debbakaya (Citron)", desc: "Premium wild citron peel blocks with therapeutic properties.", price: 800, unit: "KG", emoji: "🍊" },
+            { id: "maggai", name: "Maggai (Tender Mango)", desc: "Sun-dried shredded mango strips with rich methi layers.", price: 800, unit: "KG", emoji: "🥭" },
+            { id: "gongura-pandu", name: "Gongura Pandumirchi", desc: "Tangy sorrel leaves combined with hot ripe red chilis.", price: 800, unit: "KG", emoji: "🌿" },
+            { id: "pulihara-avakaya", name: "Pulihara Avakaya", desc: "Fusion of green mango blocks and tamarind pulihara reductions.", price: 800, unit: "KG", emoji: "🍛" }
+        ];
+
+        const CLOUD_PODIS_DB = [
+            { id: "kandi-podi", name: "Kandi Podi", desc: "Roasted yellow split-pigeon peas, ground to mix with hot ghee rice.", price: 180, unit: "200g", emoji: "🌾" },
+            { id: "karvepak-podi", name: "Karvepak Podi", desc: "Aromatic green blend made from crisp curry leaves and cumin seeds.", price: 180, unit: "200g", emoji: "🌿" },
+            { id: "sambar-podi", name: "Sambar Podi", desc: "Traditional spice layout using coriander seeds and dry chilis.", price: 180, unit: "200g", emoji: "🍲" },
+            { id: "rasam-podi", name: "Rasam Podi", desc: "Black peppercorn and heavy cumin infusion built for hot soup bases.", price: 180, unit: "200g", emoji: "🥣" },
+            { id: "vangheebath-podi", name: "Vangheebath Podi", desc: "Rich recipe flavored with light cloves, perfect for brinjal rice.", price: 180, unit: "200g", emoji: "🍆" },
+            { id: "idly-karam-podi", name: "Idly Karam Podi", desc: "The iconic spicy gun powder blend packed with black gram layers.", price: 180, unit: "200g", emoji: "🔥" },
+            { id: "nuvulla-podi", name: "Nuvulla Podi", desc: "Nutty roasted seasoning powder processed from white sesame crops.", price: 180, unit: "200g", emoji: "✨" },
+            { id: "palli-podi", name: "Palli Podi", desc: "Savory peanut meal stone-churned with roasted garlic cloves.", price: 180, unit: "200g", emoji: "🥜" },
+            { id: "chutney-podi", name: "Chutney Podi", desc: "Roasted dal formulation designed to make instant dipping sides with water.", price: 180, unit: "200g", emoji: "🥣" },
+            { id: "kobbari-karam-podi", name: "Kobbari Karam Podi", desc: "Freshly dehydrated coconut shreds crushed with hot red chilies.", price: 180, unit: "200g", emoji: "🥥" }
+        ];
+
+        const CLOUD_FRYUMS_DB = [
+            { id: "gummadi-vadiyalu", name: "Gummadi Vadiyalu (Ash Gourd)", desc: "Traditional hand-dropped ash gourd chunks with pulse batters.", price: 300, unit: "200g", emoji: "☀️" },
+            { id: "sago-papads", name: "Sago Papads (Sabudana)", desc: "Translucent tapioca pearl discs sun-cured on high terrace layouts.", price: 140, unit: "200g", emoji: "⚪" },
+            { id: "tomato-papads", name: "Tomato Flavoured Papads", desc: "Dehydrated tomato pulp processed cleanly into crispy wafers.", price: 140, unit: "200g", emoji: "🍅" },
+            { id: "urid-fryums", name: "Urid Dal Fryums", desc: "High-protein split black gram drops whipped and solar dried.", price: 300, unit: "200g", emoji: "🧄" },
+            { id: "muruku-fryums", name: "Muruku Shaped Fryums", desc: "Coiled loop spirals extruded using hand brass presses.", price: 140, unit: "200g", emoji: "🌀" },
+            { id: "rice-papads", name: "Rice Papads", desc: "Pristine white crackers prepared utilizing filtered rice starch cooks.", price: 120, unit: "200g", emoji: "🍚" },
+            { id: "challa-mirapa", name: "Challa Mirapakayallu", desc: "Traditional curd-soaked, salt-cured green chilis sun-baked down.", price: 300, unit: "200g", emoji: "🌶️" }
+        ];
+
+        let staticCartState = [];
+        let staticWishlistState = [];
+        let currentUser = JSON.parse(localStorage.getItem('pj_user_v2')) || null;
+        let selectedCheckoutShippingDestinationZone = "Domestic";
+        
+        let heroActiveSlideIndex = 0;
+        const totalHeroSlidesCount = 4;
+        let heroCarouselIntervalId = null;
+
+        const WHATSAPP_DESK_NUMBERS = {
+            Domestic: { wa: "917989350068", display: "+91 7989350068" },
+            International: { wa: "6591169217", display: "+65 9116 9217" }
+        };
+
+        function generateInvoiceId() {
+            const now = new Date();
+            const pad = (n) => String(n).padStart(2, "0");
+            return `PJ-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+        }
+
+        function collectCheckoutOrderData() {
+            if (staticCartState.length === 0) {
+                alert("Your basket is empty. Add items before checkout.");
+                return null;
+            }
+            const name = document.getElementById("checkout-cust-name").value.trim();
+            const phone = document.getElementById("checkout-cust-phone").value.trim();
+            const address = document.getElementById("checkout-cust-address").value.trim();
+            const garlicPref = document.getElementById("checkout-garlic-pref").value;
+            if (!name || !phone || !address) {
+                alert("Please fill in your name, WhatsApp number, and delivery address.");
+                return null;
+            }
+            const desk = WHATSAPP_DESK_NUMBERS[selectedCheckoutShippingDestinationZone] || WHATSAPP_DESK_NUMBERS.Domestic;
+            const items = staticCartState.map((i) => ({
+                id: i.id,
+                name: i.name,
+                qty: i.qty,
+                unitPrice: i.price,
+                lineTotal: i.price * i.qty
+            }));
+            const total = items.reduce((sum, i) => sum + i.lineTotal, 0);
+            return {
+                invoiceId: generateInvoiceId(),
+                date: new Date().toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }),
+                name,
+                phone,
+                address,
+                garlicPref,
+                shippingZone: selectedCheckoutShippingDestinationZone,
+                whatsappNumber: desk.wa,
+                whatsappDisplay: desk.display,
+                items,
+                total,
+                memberBadge: currentUser ? "Jadi Club Member" : null
+            };
+        }
+
+        function buildWhatsAppInvoiceMessage(order) {
+            const routeLabel = order.shippingZone === "International" ? "Global Export" : "Within India";
+            let msg = "*PICKLE JAADI — OFFICIAL ORDER INVOICE*\n";
+            msg += "━━━━━━━━━━━━━━━━━━━━\n";
+            msg += `*Invoice No:* ${order.invoiceId}\n`;
+            msg += `*Date:* ${order.date}\n`;
+            msg += `*Dispatch Route:* ${routeLabel}\n`;
+            msg += `*Kitchen Desk:* ${order.whatsappDisplay}\n`;
+            if (order.memberBadge) {
+                msg += `*Member Status:* ${order.memberBadge}\n`;
+            }
+            msg += "\n*CUSTOMER DETAILS*\n";
+            msg += `Name: ${order.name}\n`;
+            msg += `WhatsApp: ${order.phone}\n`;
+            msg += `Address: ${order.address}\n`;
+            msg += `Garlic Preference: ${order.garlicPref}\n`;
+            msg += "\n*ORDER ITEMS*\n";
+            order.items.forEach((item, idx) => {
+                msg += `${idx + 1}. ${item.name}\n`;
+                msg += `   Qty: ${item.qty} x Rs.${item.unitPrice} = *Rs.${item.lineTotal}*\n`;
+            });
+            msg += "\n━━━━━━━━━━━━━━━━━━━━\n";
+            msg += `*SUBTOTAL:* Rs.${order.total}.00\n`;
+            msg += `*TOTAL AMOUNT DUE:* *Rs.${order.total}.00*\n`;
+            msg += "\n*FRESH PREP COMMITMENT:*\n";
+            msg += "Your order will be prepared freshly from scratch within our strict 12-hour kitchen confirmation window.\n";
+            msg += "\nPlease confirm this invoice to initiate preparation. Thank you for choosing Pickle Jaadi!";
+            return msg;
+        }
+
+        function downloadPdfReceipt() {
+            const order = collectCheckoutOrderData();
+            if (!order) return;
+            if (!window.jspdf || !window.jspdf.jsPDF) {
+                alert("PDF library is still loading. Please try again in a moment.");
+                return;
+            }
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ unit: "mm", format: "a4" });
+            const brown = [75, 44, 32];
+            const gold = [212, 157, 53];
+            const green = [85, 124, 62];
+            const cream = [246, 243, 236];
+
+            doc.setFillColor(...brown);
+            doc.rect(0, 0, 210, 36, "F");
+            doc.setFillColor(...gold);
+            doc.rect(0, 36, 210, 2, "F");
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(20);
+            doc.setFont("helvetica", "bold");
+            doc.text("Pickle Jaadi", 15, 16);
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+            doc.text("Premium Andhra Storefront", 15, 23);
+            doc.text("picklejaadiindia@gmail.com", 15, 29);
+            doc.setFont("helvetica", "bold");
+            doc.text("TAX INVOICE", 155, 16);
+            doc.setFont("helvetica", "normal");
+            doc.text(order.invoiceId, 155, 23);
+            doc.text(order.date, 155, 29);
+
+            let y = 48;
+            doc.setTextColor(...brown);
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "bold");
+            doc.text("Customer Details", 15, y);
+            y += 7;
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(60, 60, 60);
+            doc.text(`Name: ${order.name}`, 15, y);
+            y += 6;
+            doc.text(`WhatsApp: ${order.phone}`, 15, y);
+            y += 6;
+            const addressLines = doc.splitTextToSize(`Address: ${order.address}`, 180);
+            doc.text(addressLines, 15, y);
+            y += addressLines.length * 5 + 2;
+            doc.text(`Garlic Preference: ${order.garlicPref}`, 15, y);
+            y += 6;
+            doc.text(`Dispatch Route: ${order.shippingZone}`, 15, y);
+            y += 6;
+            doc.text(`Kitchen Desk: ${order.whatsappDisplay}`, 15, y);
+            y += 6;
+            if (order.memberBadge) {
+                doc.setTextColor(...green);
+                doc.text(`Member: ${order.memberBadge}`, 15, y);
+                y += 6;
+                doc.setTextColor(60, 60, 60);
+            }
+            y += 4;
+
+            doc.setFillColor(...cream);
+            doc.rect(15, y - 4, 180, 8, "F");
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(...brown);
+            doc.text("#", 18, y);
+            doc.text("Item Description", 28, y);
+            doc.text("Qty", 130, y);
+            doc.text("Rate", 150, y);
+            doc.text("Amount", 175, y);
+            y += 8;
+
+            doc.setFont("helvetica", "normal");
+            order.items.forEach((item, idx) => {
+                if (y > 265) {
+                    doc.addPage();
+                    y = 20;
+                }
+                doc.setTextColor(60, 60, 60);
+                doc.text(String(idx + 1), 18, y);
+                const nameLines = doc.splitTextToSize(item.name, 95);
+                doc.text(nameLines, 28, y);
+                doc.text(String(item.qty), 132, y);
+                doc.text(`Rs.${item.unitPrice}`, 150, y);
+                doc.text(`Rs.${item.lineTotal}`, 172, y);
+                y += Math.max(nameLines.length * 5, 7) + 2;
+            });
+
+            y += 4;
+            doc.setDrawColor(...gold);
+            doc.setLineWidth(0.4);
+            doc.line(15, y, 195, y);
+            y += 8;
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(12);
+            doc.setTextColor(...brown);
+            doc.text("TOTAL AMOUNT DUE:", 115, y);
+            doc.text(`Rs.${order.total}.00`, 172, y);
+            y += 12;
+            doc.setFontSize(9);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(...green);
+            const freshNote = "Fresh Prep Commitment: This order will be prepared freshly from scratch within a strict 12-hour kitchen confirmation window.";
+            doc.text(doc.splitTextToSize(freshNote, 180), 15, y);
+            y += 14;
+            doc.setTextColor(120, 120, 120);
+            doc.text("Thank you for choosing Pickle Jaadi. FSSAI Registered Unit.", 15, y);
+
+            doc.save(`Pickle-Jaadi-${order.invoiceId}.pdf`);
+        }
+
+        function updateCheckoutDeskHint() {
+            const hint = document.getElementById("checkout-desk-hint");
+            if (!hint) return;
+            const desk = WHATSAPP_DESK_NUMBERS[selectedCheckoutShippingDestinationZone] || WHATSAPP_DESK_NUMBERS.Domestic;
+            hint.innerHTML = `Orders route to <span class="font-bold text-[var(--heritageBrown)]">${desk.display}</span> (${selectedCheckoutShippingDestinationZone === "International" ? "International" : "India"})`;
+        }
+
+        function buildVisualCatalogGrids() {
+            document.getElementById('pickle-grid-mount').innerHTML = CLOUD_PICKLES_DB.map(p => generateProductCardMarkup(p, 'KG')).join('');
+            document.getElementById('podi-grid-mount').innerHTML = CLOUD_PODIS_DB.map(p => generateProductCardMarkup(p, '200g')).join('');
+            document.getElementById('fryum-grid-mount').innerHTML = CLOUD_FRYUMS_DB.map(p => generateProductCardMarkup(p, '200g')).join('');
+        }
+
+        function generateProductCardMarkup(item, measurementUnit) {
+            const imageSrc = `products/${item.id}.png`;
+            const imageMarkup = `<img src="${imageSrc}" alt="${item.name}" class="product-card-image" loading="lazy" onerror="this.classList.add('hidden'); this.nextElementSibling.classList.remove('hidden');"><div class="hidden absolute inset-0 flex items-center justify-center bg-[#F6F3EC]"><span class="text-3xl">${item.emoji}</span></div>`;
+
+            return `<div class="product-item-card bg-white border border-gray-200 rounded-xl p-4 shadow-sm flex flex-col justify-between relative" data-search-keywords="${item.name} ${item.desc}">
+                <div class="relative rounded-lg mb-3 bg-[#F6F3EC] overflow-hidden h-44 border border-gray-100">
+                    <button onclick="toggleWishlistItemState('${item.id}')" class="absolute top-2.5 right-2.5 p-1.5 bg-white/80 rounded-full shadow-sm z-10 focus:outline-none">
+                        <svg class="w-4 h-4 transition-all duration-300 text-gray-400" fill="none" stroke="currentColor" stroke-width="2" id="heart-icon-${item.id}" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                        </svg>
+                    </button>
+                    ${imageMarkup}
+                </div>
+                <div>
+                    <h3 class="text-xs font-black text-[var(--heritageBrown)] leading-snug">${item.name}</h3>
+                    <p class="text-[11px] text-gray-400 mt-1 leading-normal">${item.desc}</p>
+                </div>
+                <div class="mt-3 border-t pt-3 flex items-center justify-between">
+                    <span class="text-xs font-black">₹${item.price} <span class="text-[9px] font-normal text-gray-400">/ ${measurementUnit}</span></span>
+                    <button onclick="addProductToCart('${item.id}', '${item.name}', ${item.price})" class="bg-[var(--heritageGold)] text-[var(--heritageBrown)] text-[10px] font-black py-1 px-2.5 rounded-md uppercase tracking-wider">Add</button>
+                </div>
+            </div>`;
+        }
+
+        function runLiveKitchenBatchCountdownTickerLoop() {
+            setInterval(() => {
+                const clockNow = new Date();
+                let targetBatchLockTime = new Date();
+                targetBatchLockTime.setHours(18, 0, 0, 0);
+                if (clockNow >= targetBatchLockTime) { targetBatchLockTime.setDate(targetBatchLockTime.getDate() + 1); }
+                const diff = targetBatchLockTime - clockNow;
+                
+                document.getElementById('timer-hours').innerText = String(Math.floor(diff / (1000 * 60 * 60))).padStart(2, '0');
+                document.getElementById('timer-minutes').innerText = String(Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))).padStart(2, '0');
+                document.getElementById('timer-seconds').innerText = String(Math.floor((diff % (1000 * 60)) / 1000)).padStart(2, '0');
+            }, 1000);
+        }
+
+        function openInfoDrawer(targetTabId) {
+            const overlay = document.getElementById('global-info-drawer-overlay');
+            const sheet = document.getElementById('global-info-drawer-sheet');
+            overlay.classList.remove('hidden');
+            setTimeout(() => { overlay.classList.remove('opacity-0'); sheet.classList.remove('translate-y-full'); }, 10);
+            switchInfoDrawerTab(targetTabId);
+        }
+
+        function closeInfoDrawer() {
+            const overlay = document.getElementById('global-info-drawer-overlay');
+            const sheet = document.getElementById('global-info-drawer-sheet');
+            overlay.classList.add('opacity-0'); sheet.classList.add('translate-y-full');
+            setTimeout(() => { overlay.classList.add('hidden'); }, 300);
+        }
+
+        function switchInfoDrawerTab(tabId) {
+            document.querySelectorAll('.tab-content-panel').forEach(p => p.classList.add('hidden'));
+            document.querySelectorAll('[id^="tab-btn-"]').forEach(b => {
+                b.classList.remove('text-[var(--heritageGold)]', 'border-[var(--heritageGold)]'); b.classList.add('text-gray-400', 'border-transparent');
+            });
+            const targetPane = document.getElementById(`tab-pane-${tabId}`);
+            const targetBtn = document.getElementById(`tab-btn-${tabId}`);
+            if(targetPane) targetPane.classList.remove('hidden');
+            if(targetBtn) {
+                targetBtn.classList.add('text-[var(--heritageGold)]', 'border-[var(--heritageGold)]');
+                targetBtn.scrollIntoView({ behavior: 'smooth', inline: 'center' });
+            }
+        }
+
+        function setHeroActiveSlide(index) {
+            if (index >= totalHeroSlidesCount) index = 0;
+            if (index < 0) index = totalHeroSlidesCount - 1;
+            heroActiveSlideIndex = index;
+            for (let i = 0; i < totalHeroSlidesCount; i++) {
+                const slide = document.getElementById(`hero-slide-${i+1}`);
+                const dot = document.getElementById(`hero-dot-${i}`);
+                if (slide) { slide.classList.toggle('active', i === index); }
+                if (dot) {
+                    dot.classList.toggle('bg-white', i === index); dot.classList.toggle('w-4', i === index);
+                    dot.classList.toggle('bg-white/40', i !== index);
+                }
+            }
+        }
+
+        function changeHeroSlideIndex(direction) { clearInterval(heroCarouselIntervalId); setHeroActiveSlide(heroActiveSlideIndex + direction); startHeroCarouselTimerLoop(); }
+        function startHeroCarouselTimerLoop() { heroCarouselIntervalId = setInterval(() => { setHeroActiveSlide(heroActiveSlideIndex + 1); }, 5000); }
+
+        function switchAuthFormScreenState(mode) {
+            const tabIn = document.getElementById('auth-tab-btn-signin');
+            const tabReg = document.getElementById('auth-tab-btn-register');
+            const formIn = document.getElementById('auth-form-container-signin');
+            const formReg = document.getElementById('auth-form-container-register');
+            
+            if (mode === 'signin') {
+                tabIn.className = "flex-1 text-center py-1.5 rounded transition-all bg-white text-[var(--heritageBrown)] shadow-sm";
+                tabReg.className = "flex-1 text-center py-1.5 rounded transition-all text-gray-500";
+                formIn.classList.remove('hidden'); formReg.classList.add('hidden');
+            } else {
+                tabIn.className = "flex-1 text-center py-1.5 rounded transition-all text-gray-500";
+                tabReg.className = "flex-1 text-center py-1.5 rounded transition-all bg-white text-[var(--heritageBrown)] shadow-sm";
+                formIn.classList.add('hidden'); formReg.classList.remove('hidden');
+            }
+        }
+
+        function updateUIForAuth() {
+            const tabsHeader = document.getElementById('account-gate-tabs');
+            const formIn = document.getElementById('auth-form-container-signin');
+            const formReg = document.getElementById('auth-form-container-register');
+            const dashBox = document.getElementById('auth-dashboard-container');
+            const footerBtn = document.getElementById('auth-drawer-footer-action-block');
+            const headerGreeting = document.getElementById('header-user-greeting');
+            const headerBadge = document.getElementById('header-user-badge');
+            const modalTitleText = document.getElementById('account-modal-title-text');
+
+            if (currentUser) {
+                tabsHeader.classList.add('hidden');
+                formIn.classList.add('hidden');
+                formReg.classList.add('hidden');
+                dashBox.classList.remove('hidden');
+                footerBtn.classList.remove('hidden');
+                modalTitleText.innerText = "Kitchen Profile";
+                
+                headerGreeting.innerText = `Hi, ${currentUser.name.split(' ')[0]}`;
+                headerGreeting.classList.remove('hidden');
+                if(headerBadge) headerBadge.classList.remove('hidden');
+
+                document.getElementById('dash-display-welcome-name').innerText = `Namaste, ${currentUser.name}`;
+                document.getElementById('dash-display-email').innerText = currentUser.email;
+                document.getElementById('dash-display-phone').innerText = currentUser.phone || "Not Linked";
+                document.getElementById('dash-display-address').innerText = currentUser.address || "No address specified.";
+                
+                if(document.getElementById('checkout-cust-name')) document.getElementById('checkout-cust-name').value = currentUser.name;
+                if(document.getElementById('checkout-cust-phone')) document.getElementById('checkout-cust-phone').value = currentUser.phone || "";
+                if(document.getElementById('checkout-cust-address')) document.getElementById('checkout-cust-address').value = currentUser.address || "";
+            } else {
+                tabsHeader.classList.remove('hidden');
+                dashBox.classList.add('hidden');
+                footerBtn.classList.add('hidden');
+                modalTitleText.innerText = "Member Gateway";
+                headerGreeting.classList.add('hidden');
+                if(headerBadge) headerBadge.classList.add('hidden');
+                switchAuthFormScreenState('signin');
+            }
+        }
+
+        function processCustomerAccountSignUpAction() {
+            const name = document.getElementById('reg-fullname-field').value.trim();
+            const email = document.getElementById('reg-email-field').value.trim().toLowerCase();
+            const password = document.getElementById('reg-password-field').value.trim();
+            const phone = document.getElementById('reg-phone-field').value.trim();
+            const address = document.getElementById('reg-address-field').value.trim();
+
+            if (!name || !email || !password || !phone || !address) {
+                alert("Please fill in all required registration fields."); return;
+            }
+            if (password.length < 6) {
+                alert("Password must be at least 6 characters long."); return;
+            }
+
+            let memberArchive = JSON.parse(localStorage.getItem('pj_accounts_vault')) || [];
+            const absoluteExists = memberArchive.find(u => u.email === email);
+            if(absoluteExists) {
+                alert("Account already exists with this email address. Please sign in instead."); return;
+            }
+
+            const freshProfileData = { name, email, password, phone, address };
+            memberArchive.push(freshProfileData);
+            localStorage.setItem('pj_accounts_vault', JSON.stringify(memberArchive));
+            
+            currentUser = freshProfileData;
+            localStorage.setItem('pj_user_v2', JSON.stringify(currentUser));
+            
+            updateUIForAuth();
+            alert(`Welcome to our kitchen family, ${name}! Your protected account has been created.`);
+            toggleAccountModal();
+            
+            document.getElementById('reg-fullname-field').value = '';
+            document.getElementById('reg-email-field').value = '';
+            document.getElementById('reg-password-field').value = '';
+            document.getElementById('reg-phone-field').value = '';
+            document.getElementById('reg-address-field').value = '';
+        }
+
+        function processCustomerAccountLoginAction() {
+            const targetEmail = document.getElementById('login-email-field').value.trim().toLowerCase();
+            const targetPassword = document.getElementById('login-password-field').value.trim();
+            
+            if(!targetEmail || !targetPassword) { 
+                alert("Please input both your email and password parameters."); return; 
+            }
+
+            let memberArchive = JSON.parse(localStorage.getItem('pj_accounts_vault')) || [];
+            const matchedProfile = memberArchive.find(u => u.email === targetEmail);
+
+            if(matchedProfile) {
+                if (matchedProfile.password === targetPassword) {
+                    currentUser = matchedProfile;
+                    localStorage.setItem('pj_user_v2', JSON.stringify(currentUser));
+                    updateUIForAuth();
+                    alert(`Welcome back, ${currentUser.name}!`);
+                    toggleAccountModal();
+                    
+                    document.getElementById('login-email-field').value = '';
+                    document.getElementById('login-password-field').value = '';
+                } else {
+                    alert("Incorrect credentials validation. Please check your password input.");
+                }
+            } else {
+                alert("No account matching this email was found. Please sign up to create your credentials.");
+            }
+        }
+
+        function handleUserSignOutAction() {
+            currentUser = null;
+            localStorage.removeItem('pj_user_v2');
+            updateUIForAuth();
+            toggleAccountModal();
+        }
+
+        function toggleAccountModal() { document.getElementById('account-modal').classList.toggle('hidden'); }
+        function toggleCartModal() { document.getElementById('cart-drawer-modal').classList.toggle('hidden'); renderStaticCartItems(); }
+        function toggleWishlistModal() { document.getElementById('wishlist-drawer-modal').classList.toggle('hidden'); renderWishlistDrawerItems(); }
+        function toggleHeaderSearchDropdown() { const p = document.getElementById('header-search-dropdown-panel'); p.style.maxHeight = (p.style.maxHeight === '0px' || !p.style.maxHeight) ? '80px' : '0px'; }
+        function toggleMobileNavbarDrawer() { document.getElementById('mobile-navbar-drawer').classList.toggle('hidden'); }
+
+        function setCheckoutShippingDestinationType(zone) {
+            selectedCheckoutShippingDestinationZone = zone;
+            const domBtn = document.getElementById('ship-type-domestic');
+            const intlBtn = document.getElementById('ship-type-intl');
+            const banner = document.getElementById('intl-regulatory-banner');
+            if(zone === 'Domestic') {
+                domBtn.className = "flex-1 text-center py-1 rounded text-[11px] font-black bg-white text-[var(--heritageBrown)] shadow-sm";
+                intlBtn.className = "flex-1 text-center py-1 rounded text-[11px] font-bold text-gray-500";
+                banner.classList.add('hidden');
+            } else {
+                domBtn.className = "flex-1 text-center py-1 rounded text-[11px] font-bold text-gray-500";
+                intlBtn.className = "flex-1 text-center py-1 rounded text-[11px] font-black bg-white text-[var(--heritageBrown)] shadow-sm";
+                banner.classList.remove('hidden');
+            }
+            updateCheckoutDeskHint();
+        }
+
+        function toggleWishlistItemState(id) {
+            const idx = staticWishlistState.indexOf(id);
+            const icon = document.getElementById(`heart-icon-${id}`);
+            if (idx === -1) {
+                staticWishlistState.push(id);
+                if(icon) { 
+                    icon.setAttribute('fill', '#9E1B1B'); 
+                    icon.setAttribute('stroke', '#9E1B1B');
+                    icon.classList.remove('text-gray-400');
+                    icon.classList.add('text-[var(--chiliRed)]', 'animate-heart-click'); 
+                }
+            } else {
+                staticWishlistState.splice(idx, 1);
+                if(icon) { 
+                    icon.setAttribute('fill', 'none'); 
+                    icon.setAttribute('stroke', 'currentColor');
+                    icon.classList.remove('text-[var(--chiliRed)]', 'animate-heart-click'); 
+                    icon.classList.add('text-gray-400');
+                }
+            }
+            const b = document.getElementById('global-wishlist-badge');
+            b.innerText = staticWishlistState.length;
+            b.classList.toggle('hidden', staticWishlistState.length === 0);
+        }
+
+        function renderWishlistDrawerItems() {
+            const container = document.getElementById('wishlist-items-container');
+            if (staticWishlistState.length === 0) {
+                container.innerHTML = `<p class="text-center py-6 text-xs text-gray-400">No saved items.</p>`; return;
+            }
+            container.innerHTML = staticWishlistState.map(id => {
+                return `<div class="flex justify-between items-center border-b pb-1.5 text-xs">
+                    <div class="font-bold capitalize">${id.replace('-', ' ')}</div>
+                    <button onclick="toggleWishlistItemState('${id}'); renderWishlistDrawerItems();" class="text-[11px] text-[var(--chiliRed)] underline">Remove</button>
+                </div>`;
+            }).join('');
+        }
+
+        function addProductToCart(id, name, price) {
+            const match = staticCartState.find(i => i.id === id);
+            if (match) match.qty++; else staticCartState.push({ id, name, price, qty: 1 });
+            const b = document.getElementById('global-cart-badge');
+            b.innerText = staticCartState.reduce((a,c) => a + c.qty, 0); b.classList.remove('hidden');
+        }
+
+        function toggleCartItemQty(id, delta) {
+            const match = staticCartState.find(i => i.id === id);
+            if (match) { match.qty += delta; if (match.qty <= 0) staticCartState = staticCartState.filter(i => i.id !== id); }
+            const b = document.getElementById('global-cart-badge');
+            const totalQty = staticCartState.reduce((a,c) => a + c.qty, 0);
+            b.innerText = totalQty;
+            if (totalQty === 0) b.classList.add('hidden');
+            renderStaticCartItems();
+        }
+
+        function renderStaticCartItems() {
+            const container = document.getElementById('cart-items-container');
+            const totalDisplay = document.getElementById('cart-total-value');
+            if (staticCartState.length === 0) {
+                container.innerHTML = `<p class="text-center py-6 text-xs text-gray-400">Your basket is empty.</p>`; totalDisplay.innerText = "₹0.00"; return;
+            }
+            let total = 0;
+            container.innerHTML = staticCartState.map(i => {
+                total += i.price * i.qty;
+                return `<div class="flex justify-between items-center border-b pb-1.5 text-xs">
+                    <div>
+                        <div class="font-bold text-stone-900">${i.name}</div>
+                        <div class="text-[10px] text-gray-400">₹${i.price}</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="toggleCartItemQty('${i.id}', -1)" class="px-2 py-0.5 border text-[10px] bg-gray-50">-</button>
+                        <span class="font-bold text-xs">${i.qty}</span>
+                        <button onclick="toggleCartItemQty('${i.id}', 1)" class="px-2 py-0.5 border text-[10px] bg-gray-50">+</button>
+                    </div>
+                </div>`;
+            }).join('');
+            totalDisplay.innerText = `₹${total}.00`;
+        }
+
+        function compileAndRouteWhatsAppOrderWorkflow() {
+            const order = collectCheckoutOrderData();
+            if (!order) return;
+
+            const msg = buildWhatsAppInvoiceMessage(order);
+            window.open(`https://wa.me/${order.whatsappNumber}?text=${encodeURIComponent(msg)}`, "_blank");
+        }
+
+        function filterCatalogItemsFuzzy(q) {
+            const query = q.toLowerCase();
+            const cards = document.querySelectorAll('.product-item-card');
+            let matches = 0;
+            cards.forEach(c => {
+                if(c.getAttribute('data-search-keywords').toLowerCase().includes(query)) { c.style.display = 'flex'; matches++; } else { c.style.display = 'none'; }
+            });
+            document.getElementById('search-status-feedback').classList.toggle('hidden', query.length === 0 || matches > 0);
+        }
+
+        buildVisualCatalogGrids(); updateUIForAuth(); updateCheckoutDeskHint(); setHeroActiveSlide(0); startHeroCarouselTimerLoop(); runLiveKitchenBatchCountdownTickerLoop();
+    </script>
+</body>
+</html>
