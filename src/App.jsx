@@ -9,6 +9,7 @@ import Testimonials from './components/Testimonials';
 import Footer from './components/Footer';
 import InfoDrawer from './components/InfoDrawer';
 import AccountModal, { CartDrawer, WishlistDrawer } from './components/AccountModal';
+import OrderConfirmationModal from './components/OrderConfirmationModal';
 import SearchStatusBar from './components/SearchStatusBar';
 import { CLOUD_PICKLES_DB, CLOUD_PODIS_DB, CLOUD_FRYUMS_DB } from './data/products';
 
@@ -38,6 +39,7 @@ function AppContent() {
       <AccountModal />
       <CartDrawer />
       <WishlistDrawer />
+      <OrderConfirmationModal />
     </div>
   );
 }

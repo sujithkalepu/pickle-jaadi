@@ -108,16 +108,20 @@ export function buildWhatsAppInvoiceMessage(order) {
 }
 
 export function buildCustomerWhatsAppMessage(order) {
-  let msg = `*PICKLE JAADI — YOUR ORDER RECEIPT*\n`;
+  let msg = `*PICKLE JAADI — ORDER RECEIVED*\n`;
   msg += '━━━━━━━━━━━━━━━━━━━━\n';
-  msg += `Hi ${order.name}! Thank you for ordering with us.\n\n`;
-  msg += `*Invoice No:* ${order.invoiceId}\n`;
+  msg += `Hi ${order.name}! Thank you for your order.\n\n`;
+  msg += `*Order No:* ${order.invoiceId}\n`;
+  msg += `*Status:* Pending Kitchen Confirmation\n`;
   msg += `*Date:* ${order.date}\n`;
   msg += `*Total:* Rs.${order.total}.00\n`;
   msg += `*Kitchen Desk:* ${order.whatsappDisplay}\n\n`;
-  msg += `📄 Your PDF invoice has been downloaded to this device — please keep it for your records.\n\n`;
-  msg += `Our team will confirm your order shortly. Fresh preparation begins after confirmation.\n\n`;
-  msg += '— Pickle Jaadi';
+  msg += `📄 Your PDF invoice has been downloaded — please keep it.\n\n`;
+  msg += `*Next steps:*\n`;
+  msg += `1. Our kitchen will confirm your order on WhatsApp within 12 hours.\n`;
+  msg += `2. After confirmation, we share payment details (UPI / Google Pay).\n`;
+  msg += `3. Fresh preparation starts only after order confirmation.\n\n`;
+  msg += `Reply to this chat if you have questions. — Pickle Jaadi`;
   return msg;
 }
 
@@ -261,6 +265,8 @@ export function processFullInvoiceCheckout(order) {
       window.open(getWhatsAppCheckoutUrl(customerWa, customerMsg), '_blank');
     }, 900);
   }
+
+  return order;
 }
 
 export function openWhatsAppCheckout(order) {

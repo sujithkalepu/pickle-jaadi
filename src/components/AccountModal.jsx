@@ -165,7 +165,7 @@ export function CartDrawer() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" /></svg>
           <span>Go Back</span>
         </button>
-        <h2 className="text-base font-black font-serif text-[var(--heritageBrown)]">🛒 Your Basket</h2>
+        <h2 className="text-base font-black font-serif text-[var(--heritageBrown)]">🛒 Checkout</h2>
       </div>
 
       <div className="space-y-2 mb-4">
@@ -261,6 +261,7 @@ export function CartDrawer() {
       </div>
 
       <div className="border-t pt-3 bg-white mt-3 space-y-2.5">
+        <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-wider">💳 Place Your Order</h4>
         <div className="space-y-1.5 text-xs">
           <div className="flex justify-between text-gray-600">
             <span>Subtotal</span>
@@ -285,24 +286,21 @@ export function CartDrawer() {
           type="button"
           onClick={handleWhatsAppCheckout}
           disabled={!canRouteWhatsApp}
-          className={`w-full py-2.5 rounded-lg font-black flex items-center justify-center gap-2 shadow text-xs uppercase tracking-wider ${
+          className={`w-full py-3 rounded-lg font-black flex items-center justify-center gap-2 shadow text-xs uppercase tracking-wider ${
             canRouteWhatsApp
               ? 'bg-[#25D366] text-white hover:brightness-105'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          🚀 Send Invoice (PDF + WhatsApp)
+          ✅ Place Order & Checkout
         </button>
         <p className="text-[10px] text-center text-gray-400 font-medium leading-relaxed">
           {canRouteWhatsApp && desk ? (
             <>
-              Downloads PDF for you · Opens WhatsApp to{' '}
-              <span className="font-bold text-[var(--heritageBrown)]">{desk.display}</span>
-              {whatsappRouting.zone === 'International' ? ' (Global)' : ' (India)'}
-              {' '}· Sends copy to your WhatsApp number
+              PDF receipt · WhatsApp to kitchen ({desk.display}) · Confirmation within 12 hours
             </>
           ) : (
-            'Enter Pin / Zip above to enable checkout'
+            'Fill all details + Pin / Zip above to checkout'
           )}
         </p>
       </div>

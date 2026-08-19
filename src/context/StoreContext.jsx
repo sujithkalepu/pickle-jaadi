@@ -42,6 +42,7 @@ export function StoreProvider({ children }) {
   const [infoDrawerOpen, setInfoDrawerOpen] = useState(false);
   const [infoTab, setInfoTab] = useState('about');
   const [authMode, setAuthMode] = useState('signin');
+  const [orderConfirmation, setOrderConfirmation] = useState(null);
 
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [registerForm, setRegisterForm] = useState({
@@ -222,7 +223,28 @@ export function StoreProvider({ children }) {
 
   const handleWhatsAppCheckout = () => {
     const order = collectCheckoutOrderData(cart, checkoutForm, shippingQuote, cartSubtotal, shippingFee, orderTotal, currentUser);
-    if (order) processFullInvoiceCheckout(order);
+    if (!order) return;
+
+    processFullInvoiceCheckout(order);
+
+    try {
+      const saved = JSON.parse(localStorage.getItem('pj_orders_v1') || '[]');
+      saved.unshift({
+        invoiceId: order.invoiceId,
+        name: order.name,
+        total: order.total,
+        date: order.date,
+        status: 'pending',
+        placedAt: new Date().toISOString(),
+      });
+      localStorage.setItem('pj_orders_v1', JSON.stringify(saved.slice(0, 20)));
+    } catch {
+      /* ignore storage errors */
+    }
+
+    setCart([]);
+    setCartOpen(false);
+    setOrderConfirmation(order);
   };
 
   const value = {
@@ -273,6 +295,8 @@ export function StoreProvider({ children }) {
     signOut,
     handlePdfDownload,
     handleWhatsAppCheckout,
+    orderConfirmation,
+    setOrderConfirmation,
     reviews,
     submitReview,
   };
