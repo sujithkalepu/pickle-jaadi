@@ -5,7 +5,21 @@ export default function OrderConfirmationModal() {
 
   if (!orderConfirmation) return null;
 
-  const { invoiceId, name, total, whatsappDisplay, shippingZone, date } = orderConfirmation;
+  const {
+    invoiceId,
+    name,
+    total,
+    whatsappDisplay,
+    shippingZone,
+    date,
+    shippingFee,
+    isCalculatedAtDispatch,
+    totalWeightLabel,
+  } = orderConfirmation;
+
+  const shippingNotice = isCalculatedAtDispatch || shippingZone === 'International'
+    ? `International shipping is to be calculated. Total order weight: ${totalWeightLabel || 'see invoice'}. Our kitchen will confirm the exact courier charge on WhatsApp before you pay. Customs duties, import taxes, and local charges (if any) are the customer’s responsibility.`
+    : `Shipping for this order is ₹${shippingFee} based on total weight ${totalWeightLabel || ''}. If this amount later changes, we will inform you on WhatsApp with the new delivery charge before you pay.`;
 
   return (
     <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
@@ -22,7 +36,15 @@ export default function OrderConfirmationModal() {
             <p className="font-black uppercase tracking-wider text-[9px] opacity-70">Order Number</p>
             <p className="font-mono font-black text-sm mt-0.5">{invoiceId}</p>
             <p className="mt-2 text-[11px] leading-relaxed">
-              Hi <strong>{name}</strong>, we received your order on {date}. Our kitchen team will confirm it on WhatsApp shortly.
+              Hi <strong>{name}</strong>, we received your order on {date}. This is <strong>not</strong> the final confirmation yet.
+            </p>
+          </div>
+
+          <div className="bg-[#F6F3EC] border border-stone-200 rounded-xl p-3 text-[11px] leading-relaxed text-stone-700">
+            <p className="font-black uppercase tracking-wider text-[9px] text-[var(--heritageBrown)] mb-1">How you will know it is confirmed</p>
+            <p>
+              Within <strong>12 hours</strong>, our kitchen will send you a WhatsApp message titled{' '}
+              <strong>ORDER CONFIRMED ✅</strong> from <strong>{whatsappDisplay}</strong>. That message is your official confirmation, with payment details and preparation start.
             </p>
           </div>
 
@@ -30,16 +52,24 @@ export default function OrderConfirmationModal() {
             <p className="font-black uppercase tracking-wider text-[10px] text-gray-400">What happens next</p>
             <ol className="space-y-2 text-[11px] text-gray-700 leading-relaxed list-decimal list-inside">
               <li>Your PDF invoice was downloaded to this device.</li>
-              <li>WhatsApp opened with your order sent to <strong>{whatsappDisplay}</strong>.</li>
-              <li>Our kitchen confirms your order within <strong>12 hours</strong> on WhatsApp.</li>
-              <li>After confirmation, you receive payment details (UPI / Google Pay) and dispatch updates.</li>
+              <li>WhatsApp opened with your order sent to the kitchen.</li>
+              <li>Wait for the <strong>ORDER CONFIRMED ✅</strong> WhatsApp message (within 12 hours).</li>
+              <li>Pay via UPI / Google Pay on that same WhatsApp chat after confirmation.</li>
             </ol>
           </div>
 
           <div className="flex justify-between items-center border-t pt-3 font-black text-[var(--heritageBrown)]">
             <span>Order Total ({shippingZone})</span>
-            <span className="text-base">₹{total}.00</span>
+            <span className="text-base">
+              {isCalculatedAtDispatch ? `₹${total}.00 + shipping` : `₹${total}.00`}
+            </span>
           </div>
+          {totalWeightLabel && (
+            <p className="text-[10px] text-gray-500 -mt-2">Total order weight: {totalWeightLabel}</p>
+          )}
+          <p className="text-[10px] text-amber-800 leading-relaxed bg-amber-50 border border-amber-200 rounded-lg p-2.5">
+            {shippingNotice}
+          </p>
 
           <p className="text-[10px] text-center text-gray-400 leading-relaxed">
             Save your invoice number <strong className="text-[var(--heritageBrown)]">{invoiceId}</strong> for any follow-up on WhatsApp.

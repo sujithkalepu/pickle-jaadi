@@ -1,15 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { GARLIC_OPTIONS, WEIGHT_OPTIONS, getPriceForWeight, makeCartKey } from '../utils/productPricing';
+import { GARLIC_OPTIONS, getBaseGrams, getPriceForWeight, getWeightOptions, makeCartKey } from '../utils/productPricing';
 
 export default function ProductCard({ item }) {
   const { toggleWishlist, isWishlisted, addToCart, updateCartQty, getCartQtyForVariant, matchesSearch } = useStore();
   const [imgFailed, setImgFailed] = useState(false);
-  const [weightGrams, setWeightGrams] = useState(500);
+  const weightOptions = getWeightOptions(item);
+  const [weightGrams, setWeightGrams] = useState(() => getBaseGrams(item));
   const [garlic, setGarlic] = useState('With Garlic');
   const [showAddedNotice, setShowAddedNotice] = useState(false);
   const visible = matchesSearch(item);
-  const selectedWeight = WEIGHT_OPTIONS.find((w) => w.grams === weightGrams) || WEIGHT_OPTIONS[1];
+  const selectedWeight = weightOptions.find((w) => w.grams === weightGrams) || weightOptions[0];
   const unitPrice = getPriceForWeight(item, weightGrams);
   const cartQty = getCartQtyForVariant(item.id, weightGrams, garlic);
   const wishKey = makeCartKey(item.id, weightGrams, garlic);
@@ -100,7 +101,7 @@ export default function ProductCard({ item }) {
         <div>
           <p className="text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1.5">Select Weight</p>
           <div className="grid grid-cols-3 gap-1.5">
-            {WEIGHT_OPTIONS.map((option) => {
+            {weightOptions.map((option) => {
               const active = weightGrams === option.grams;
               const optionPrice = getPriceForWeight(item, option.grams);
               return (

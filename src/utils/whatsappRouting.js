@@ -6,8 +6,8 @@ import { parseDeliveryPinCode } from '../data/shipping';
  * - 6-digit Indian PIN  → Domestic  (+91 7989350068)
  * - International zip   → International (+65 9116 9217)
  */
-export function resolveWhatsAppDesk(pinCode) {
-  const destination = parseDeliveryPinCode(pinCode);
+export function resolveWhatsAppDesk(pinCode, country = 'India') {
+  const destination = parseDeliveryPinCode(pinCode, country);
   const zone = destination.zone;
 
   if (!zone) {
@@ -27,7 +27,7 @@ export function resolveWhatsAppDesk(pinCode) {
     desk,
     destination,
     routeLabel: zone === 'International' ? 'Global Export Desk' : 'India Domestic Desk',
-    isRoutable: true,
+    isRoutable: destination.type === 'domestic' || destination.type === 'international',
   };
 }
 

@@ -1,3 +1,5 @@
+import { SAVITRI_FOODS } from '../data/partners';
+
 export default function HeritageLegacy() {
   return (
     <section id="heritage" className="relative overflow-hidden border-t border-stone-200/60 bg-[#FDFBF7]">
@@ -6,14 +8,14 @@ export default function HeritageLegacy() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 sm:py-16 relative">
         <div className="max-w-3xl mx-auto text-center mb-10 sm:mb-12">
           <p className="text-[10px] font-black uppercase tracking-[0.25em] text-[var(--heritageGold)] mb-3">
-            A Heritage Tie-up
+            India Kitchen · Singapore Partner
           </p>
           <h2 className="text-2xl sm:text-3xl font-black font-serif text-[var(--heritageBrown)] leading-tight">
             Our Culinary Legacy
           </h2>
           <div className="flex items-center justify-center gap-3 mt-4">
             <span className="h-px w-12 bg-[var(--heritageGold)]/60" />
-            <span className="text-[10px] font-black text-[var(--heritageBrown)]/50 tracking-widest">EST. 1922</span>
+            <span className="text-[10px] font-black text-[var(--heritageBrown)]/50 tracking-widest">SINGAPORE REGISTERED</span>
             <span className="h-px w-12 bg-[var(--heritageGold)]/60" />
           </div>
         </div>
@@ -25,29 +27,29 @@ export default function HeritageLegacy() {
               <div className="space-y-6">
                 <div className="text-center pb-4 border-b border-stone-100">
                   <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">In Partnership With</p>
-                  <p className="text-xl sm:text-2xl font-black font-serif text-[var(--heritageBrown)]">Savitri Foods</p>
-                  <p className="text-[11px] text-[var(--heritageGold)] font-bold mt-1">Legacy Since 1922</p>
+                  <p className="text-xl sm:text-2xl font-black font-serif text-[var(--heritageBrown)]">{SAVITRI_FOODS.name}</p>
+                  <p className="text-[11px] text-[var(--heritageGold)] font-bold mt-1">🇸🇬 {SAVITRI_FOODS.legalNote}</p>
                 </div>
                 <ul className="space-y-4 text-[11px] sm:text-xs text-gray-600 leading-relaxed">
                   <li className="flex gap-3">
-                    <span className="shrink-0 w-8 h-8 rounded-full bg-[#F6F3EC] border border-stone-200 flex items-center justify-center text-sm">🫒</span>
+                    <span className="shrink-0 w-8 h-8 rounded-full bg-[#F6F3EC] border border-stone-200 flex items-center justify-center text-sm">🇸🇬</span>
                     <div>
-                      <p className="font-black text-[var(--heritageBrown)] text-[10px] uppercase tracking-wider mb-0.5">Artisanal Origins</p>
-                      <p>Founded as a traditional oil mill — where purity of cold-pressed oils began.</p>
+                      <p className="font-black text-[var(--heritageBrown)] text-[10px] uppercase tracking-wider mb-0.5">Singapore Registered</p>
+                      <p>Savitri Foods is a Singapore-registered company — our trusted partner for quality standards and international customers.</p>
                     </div>
                   </li>
                   <li className="flex gap-3">
-                    <span className="shrink-0 w-8 h-8 rounded-full bg-[#F6F3EC] border border-stone-200 flex items-center justify-center text-sm">🌾</span>
+                    <span className="shrink-0 w-8 h-8 rounded-full bg-[#F6F3EC] border border-stone-200 flex items-center justify-center text-sm">🫒</span>
                     <div>
-                      <p className="font-black text-[var(--heritageBrown)] text-[10px] uppercase tracking-wider mb-0.5">Century of Craft</p>
-                      <p>Over 100 years perfecting pure ingredients and high-quality rice milling.</p>
+                      <p className="font-black text-[var(--heritageBrown)] text-[10px] uppercase tracking-wider mb-0.5">Pure Ingredients</p>
+                      <p>A shared commitment to clean sourcing and high-quality staples that honour authentic Andhra cooking.</p>
                     </div>
                   </li>
                   <li className="flex gap-3">
                     <span className="shrink-0 w-8 h-8 rounded-full bg-[#F6F3EC] border border-stone-200 flex items-center justify-center text-sm">🤝</span>
                     <div>
-                      <p className="font-black text-[var(--heritageBrown)] text-[10px] uppercase tracking-wider mb-0.5">Strategic Alliance</p>
-                      <p>Pickle Jaadi × Savitri Foods — tradition meets timeless quality.</p>
+                      <p className="font-black text-[var(--heritageBrown)] text-[10px] uppercase tracking-wider mb-0.5">Two Homes, One Standard</p>
+                      <p>Pickle Jaadi kitchen in Andhra Pradesh · Savitri Foods registered in Singapore for global reach.</p>
                     </div>
                   </li>
                 </ul>
@@ -57,23 +59,23 @@ export default function HeritageLegacy() {
 
           <div className="lg:col-span-7 order-1 lg:order-2 space-y-5">
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed font-medium">
-              <strong className="text-[var(--heritageBrown)] font-black">Pickle Jaadi</strong> is proud to be in a strategic tie-up with{' '}
-              <strong className="text-[var(--heritageBrown)]">Savitri Foods</strong> — a legacy brand whose roots reach back to{' '}
-              <strong className="text-[var(--heritageGold)]">1922</strong>.
+              <strong className="text-[var(--heritageBrown)] font-black">Pickle Jaadi</strong> is proud to partner with{' '}
+              <strong className="text-[var(--heritageBrown)]">{SAVITRI_FOODS.name}</strong> — a{' '}
+              <strong className="text-[var(--heritageGold)]">Singapore-registered company</strong>.
             </p>
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-              Originally founded as an artisanal oil mill, Savitri Foods has spent over a century perfecting the science of pure ingredients and high-quality rice milling — values that form the very foundation of authentic Andhra cuisine.
+              Our kitchen in coastal Andhra Pradesh prepares every batch fresh to order. Savitri Foods, registered in Singapore, brings international quality discipline and a global customer desk — so families in India and overseas receive the same standard of purity.
             </p>
             <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
-              By combining Pickle Jaadi&apos;s traditional Andhra pickling techniques with Savitri Foods&apos; century-old commitment to purity, we deliver a product that is truly timeless — crafted with the same integrity that has been passed down through generations.
+              International orders are coordinated through this Singapore partnership. Domestic orders remain with our India kitchen desk. One recipe. Two registered homes. The same promise of freshness.
             </p>
             <blockquote className="border-l-4 border-[var(--heritageGold)] pl-4 py-1">
               <p className="text-sm italic font-serif text-[var(--heritageBrown)] leading-relaxed">
-                &ldquo;Two legacies. One kitchen. A taste that honours the past and nourishes the present.&rdquo;
+                &ldquo;Andhra kitchen. Singapore registered. A taste that travels with integrity.&rdquo;
               </p>
             </blockquote>
             <div className="flex flex-wrap gap-2 pt-1">
-              {['Pure Ingredients', 'Andhra Tradition', 'Since 1922', 'FSSAI Registered'].map((tag) => (
+              {['Singapore Registered', 'Andhra Kitchen', 'Pure Ingredients', 'Fresh Post-Order Prep'].map((tag) => (
                 <span
                   key={tag}
                   className="text-[9px] font-black uppercase tracking-wider bg-[#F6F3EC] text-[var(--heritageBrown)] border border-stone-200/80 px-3 py-1.5 rounded-full"

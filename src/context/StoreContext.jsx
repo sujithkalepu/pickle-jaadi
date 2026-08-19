@@ -1,8 +1,10 @@
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { ALL_PRODUCTS } from '../data/products';
+import { composeCheckoutIdentity } from '../data/addressOptions';
 import { calculateShippingFromPinCode, getOrderTotal } from '../data/shipping';
 import { resolveWhatsAppDesk } from '../utils/whatsappRouting';
 import { collectCheckoutOrderData, downloadPdfReceipt, processFullInvoiceCheckout } from '../utils/checkout';
+import { logOrderToSheet } from '../utils/sheetdb';
 import { makeCartKey } from '../utils/productPricing';
 import {
   createReview,
@@ -14,10 +16,18 @@ import {
 const StoreContext = createContext(null);
 
 const defaultCheckout = {
+  firstName: '',
+  lastName: '',
   name: '',
   phone: '',
-  address: '',
+  email: '',
+  country: 'India',
+  street: '',
+  apartment: '',
+  city: '',
+  state: '',
   pinCode: '',
+  address: '',
 };
 
 export function StoreProvider({ children }) {
@@ -43,6 +53,7 @@ export function StoreProvider({ children }) {
   const [infoTab, setInfoTab] = useState('about');
   const [authMode, setAuthMode] = useState('signin');
   const [orderConfirmation, setOrderConfirmation] = useState(null);
+  const [checkoutBusy, setCheckoutBusy] = useState(false);
 
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [registerForm, setRegisterForm] = useState({
@@ -56,12 +67,17 @@ export function StoreProvider({ children }) {
   const cartCount = useMemo(() => cart.reduce((a, c) => a + c.qty, 0), [cart]);
   const cartSubtotal = useMemo(() => cart.reduce((a, c) => a + c.price * c.qty, 0), [cart]);
   const shippingQuote = useMemo(
-    () => calculateShippingFromPinCode(cart, checkoutForm.pinCode),
-    [cart, checkoutForm.pinCode],
+    () => calculateShippingFromPinCode(
+      cart,
+      checkoutForm.pinCode,
+      `${checkoutForm.address} ${checkoutForm.city} ${checkoutForm.state}`,
+      checkoutForm.country,
+    ),
+    [cart, checkoutForm.pinCode, checkoutForm.address, checkoutForm.city, checkoutForm.state, checkoutForm.country],
   );
   const whatsappRouting = useMemo(
-    () => resolveWhatsAppDesk(checkoutForm.pinCode),
-    [checkoutForm.pinCode],
+    () => resolveWhatsAppDesk(checkoutForm.pinCode, checkoutForm.country),
+    [checkoutForm.pinCode, checkoutForm.country],
   );
   const shippingZone = shippingQuote.zone || whatsappRouting.zone || 'Domestic';
   const shippingFee = shippingQuote.amount;
@@ -94,14 +110,21 @@ export function StoreProvider({ children }) {
 
   useEffect(() => {
     if (currentUser) {
-      setCheckoutForm((prev) => ({
+      setCheckoutForm((prev) => composeCheckoutIdentity({
         ...prev,
-        name: currentUser.name || '',
-        phone: currentUser.phone || '',
-        address: currentUser.address || '',
+        name: currentUser.name || prev.name,
+        firstName: prev.firstName || String(currentUser.name || '').split(' ')[0] || '',
+        lastName: prev.lastName || String(currentUser.name || '').split(' ').slice(1).join(' ') || '',
+        phone: currentUser.phone || prev.phone,
+        email: currentUser.email || prev.email,
+        street: prev.street || currentUser.address || '',
       }));
     }
   }, [currentUser]);
+
+  const setCheckoutField = (key, value) => {
+    setCheckoutForm((prev) => composeCheckoutIdentity({ ...prev, [key]: value }));
+  };
 
   const matchesSearch = (item) => {
     if (!searchQuery.trim()) return true;
@@ -221,30 +244,40 @@ export function StoreProvider({ children }) {
     if (order) downloadPdfReceipt(order);
   };
 
-  const handleWhatsAppCheckout = () => {
+  const handleWhatsAppCheckout = async () => {
+    if (checkoutBusy) return;
     const order = collectCheckoutOrderData(cart, checkoutForm, shippingQuote, cartSubtotal, shippingFee, orderTotal, currentUser);
     if (!order) return;
 
-    processFullInvoiceCheckout(order);
-
+    setCheckoutBusy(true);
     try {
-      const saved = JSON.parse(localStorage.getItem('pj_orders_v1') || '[]');
-      saved.unshift({
-        invoiceId: order.invoiceId,
-        name: order.name,
-        total: order.total,
-        date: order.date,
-        status: 'pending',
-        placedAt: new Date().toISOString(),
-      });
-      localStorage.setItem('pj_orders_v1', JSON.stringify(saved.slice(0, 20)));
-    } catch {
-      /* ignore storage errors */
-    }
+      await logOrderToSheet(order, currentUser);
+      processFullInvoiceCheckout(order);
 
-    setCart([]);
-    setCartOpen(false);
-    setOrderConfirmation(order);
+      try {
+        const saved = JSON.parse(localStorage.getItem('pj_orders_v1') || '[]');
+        saved.unshift({
+          invoiceId: order.invoiceId,
+          name: order.name,
+          total: order.total,
+          date: order.date,
+          status: 'pending',
+          placedAt: new Date().toISOString(),
+        });
+        localStorage.setItem('pj_orders_v1', JSON.stringify(saved.slice(0, 20)));
+      } catch {
+        /* ignore storage errors */
+      }
+
+      setCart([]);
+      setCartOpen(false);
+      setOrderConfirmation(order);
+    } catch (error) {
+      console.error('SheetDB order log failed:', error);
+      alert('Could not log this order to the kitchen sheet yet. WhatsApp will open only after the order is saved. Please try Secure Checkout again.');
+    } finally {
+      setCheckoutBusy(false);
+    }
   };
 
   const value = {
@@ -260,6 +293,7 @@ export function StoreProvider({ children }) {
     currentUser,
     checkoutForm,
     setCheckoutForm,
+    setCheckoutField,
     searchQuery,
     setSearchQuery,
     mobileNavOpen,
@@ -295,6 +329,7 @@ export function StoreProvider({ children }) {
     signOut,
     handlePdfDownload,
     handleWhatsAppCheckout,
+    checkoutBusy,
     orderConfirmation,
     setOrderConfirmation,
     reviews,

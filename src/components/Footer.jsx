@@ -48,16 +48,18 @@ export default function Footer() {
         <div className="flex flex-col items-center justify-center py-5 mb-6 border-b border-stone-800/50 text-center">
           <div className="flex items-center gap-3 mb-3">
             <span className="h-px w-10 sm:w-20 bg-gradient-to-r from-transparent to-[var(--heritageGold)]/50" />
-            <span className="text-[8px] font-black uppercase tracking-[0.35em] text-stone-500">Heritage Partnership</span>
+            <span className="text-[8px] font-black uppercase tracking-[0.35em] text-stone-500">Singapore Partnership</span>
             <span className="h-px w-10 sm:w-20 bg-gradient-to-l from-transparent to-[var(--heritageGold)]/50" />
           </div>
           <p className="font-serif text-sm sm:text-[15px] text-stone-300 leading-relaxed tracking-[0.02em] max-w-xl">
             In Partnership with{' '}
             <span className="text-[var(--heritageGold)] font-bold italic">Savitri Foods</span>
-            {' '}— Legacy of Purity since{' '}
-            <span className="text-white/90 font-semibold tabular-nums">1922</span>
+            {' '}— Singapore-registered company
           </p>
         </div>
+        <p className="text-[10px] text-stone-500 text-center normal-case font-medium leading-relaxed max-w-2xl mx-auto">
+          We ship within India and internationally. Customs duties, import taxes, and local charges (if any) are the customer&apos;s responsibility.
+        </p>
 
         <div className="flex flex-col sm:flex-row justify-between items-center text-[10px] text-stone-500 font-bold uppercase text-center sm:text-left gap-3">
           <div className="flex items-center gap-1.5">

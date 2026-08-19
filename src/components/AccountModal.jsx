@@ -1,5 +1,19 @@
 import { useStore } from '../context/StoreContext';
-import { DOMESTIC_PIN_SHIPPING, INTERNATIONAL_SHIPPING, formatShippingLine } from '../data/shipping';
+import { formatShippingLine } from '../data/shipping';
+import { formatWeightShort, getLineWeightGrams } from '../utils/productPricing';
+import { INDIAN_STATES, SHIPPING_COUNTRIES } from '../data/addressOptions';
+import InternationalNotice from './InternationalNotice';
+
+const fieldClass = 'w-full border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[var(--heritageGold)] font-medium bg-white';
+
+function Field({ label, children }) {
+  return (
+    <div>
+      <label className="block text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">{label}</label>
+      {children}
+    </div>
+  );
+}
 
 function DrawerShell({ open, onClose, title, children, footer, wide }) {
   if (!open) return null;
@@ -149,9 +163,10 @@ export function CartDrawer() {
     updateCartQty,
     whatsappRouting,
     checkoutForm,
-    setCheckoutForm,
+    setCheckoutField,
     handlePdfDownload,
     handleWhatsAppCheckout,
+    checkoutBusy,
   } = useStore();
 
   const desk = whatsappRouting.desk;
@@ -175,9 +190,15 @@ export function CartDrawer() {
           cart.map((i) => (
             <div key={i.cartKey} className="flex justify-between items-start border-b pb-2 text-xs gap-3">
               <div className="min-w-0">
-                <div className="font-bold text-stone-900 leading-snug">{i.name}</div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="font-bold text-stone-900 leading-snug">{i.name}</div>
+                  <span className="inline-flex items-center rounded-full bg-[#F6F3EC] border border-stone-200 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-[var(--heritageBrown)]">
+                    Weight {formatWeightShort(i.weightGrams)}
+                  </span>
+                </div>
                 <div className="text-[10px] text-gray-500 mt-0.5">
-                  {i.weightLabel} · {i.garlic === 'With Garlic' ? 'With Garlic' : 'No Garlic'}
+                  {i.garlic === 'With Garlic' ? 'With Garlic' : 'No Garlic'}
+                  {i.qty > 1 ? ` · Line ${formatWeightShort(getLineWeightGrams(i))}` : ''}
                 </div>
                 <div className="text-[10px] text-gray-400 mt-0.5">₹{i.price} each</div>
               </div>
@@ -192,46 +213,141 @@ export function CartDrawer() {
       </div>
 
       <div className="bg-stone-50 rounded-xl p-3 border border-stone-200/60 space-y-2.5">
-        <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-wider">📍 Delivery Destination</h4>
+        <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-wider">📍 Shipping Address</h4>
         <div className="bg-emerald-50 border border-emerald-200/60 p-2.5 rounded-lg text-[11px] text-emerald-800 leading-normal flex items-start gap-1.5 font-medium">
           <span>🧑‍🍳</span>
           <div><strong>Freshness Lock:</strong> Prepared freshly from scratch only <em>after</em> your order is confirmed.</div>
         </div>
+
         <div className="space-y-1.5">
-          <input type="text" value={checkoutForm.name} onChange={(e) => setCheckoutForm({ ...checkoutForm, name: e.target.value })} placeholder="Customer Full Name *" className="w-full border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[var(--heritageGold)] font-medium" />
-          <input type="text" value={checkoutForm.phone} onChange={(e) => setCheckoutForm({ ...checkoutForm, phone: e.target.value })} placeholder="WhatsApp Number *" className="w-full border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[var(--heritageGold)] font-medium" />
-          <textarea value={checkoutForm.address} onChange={(e) => setCheckoutForm({ ...checkoutForm, address: e.target.value })} rows={2} placeholder="Street, Area, City, State..." className="w-full border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[var(--heritageGold)] font-medium" />
-          <div>
-            <label className="block text-[9px] font-black uppercase tracking-wider text-gray-400 mb-1">Pin Code / Zip Code *</label>
+          <Field label="Country / Region *">
+            <select
+              value={checkoutForm.country || 'India'}
+              onChange={(e) => setCheckoutField('country', e.target.value)}
+              className={fieldClass}
+            >
+              {SHIPPING_COUNTRIES.map((country) => (
+                <option key={country} value={country}>{country}</option>
+              ))}
+            </select>
+          </Field>
+          <div className="grid grid-cols-2 gap-1.5">
+            <Field label="First name *">
+              <input type="text" autoComplete="given-name" value={checkoutForm.firstName || ''} onChange={(e) => setCheckoutField('firstName', e.target.value)} placeholder="First name" className={fieldClass} />
+            </Field>
+            <Field label="Last name *">
+              <input type="text" autoComplete="family-name" value={checkoutForm.lastName || ''} onChange={(e) => setCheckoutField('lastName', e.target.value)} placeholder="Last name" className={fieldClass} />
+            </Field>
+          </div>
+          <Field label="Street address *">
+            <input type="text" autoComplete="address-line1" value={checkoutForm.street || ''} onChange={(e) => setCheckoutField('street', e.target.value)} placeholder="House number and street name" className={fieldClass} />
+          </Field>
+          <Field label="Apartment, suite, unit (optional)">
+            <input type="text" autoComplete="address-line2" value={checkoutForm.apartment || ''} onChange={(e) => setCheckoutField('apartment', e.target.value)} placeholder="Apartment, suite, unit, etc." className={fieldClass} />
+          </Field>
+          <div className="grid grid-cols-2 gap-1.5">
+            <Field label="Town / City *">
+              <input type="text" autoComplete="address-level2" value={checkoutForm.city || ''} onChange={(e) => setCheckoutField('city', e.target.value)} placeholder="City" className={fieldClass} />
+            </Field>
+            <Field label={checkoutForm.country === 'India' ? 'State *' : 'State / Province'}>
+              {checkoutForm.country === 'India' ? (
+                <select value={checkoutForm.state || ''} onChange={(e) => setCheckoutField('state', e.target.value)} className={fieldClass}>
+                  <option value="">Select state</option>
+                  {INDIAN_STATES.map((state) => (
+                    <option key={state} value={state}>{state}</option>
+                  ))}
+                </select>
+              ) : (
+                <input type="text" autoComplete="address-level1" value={checkoutForm.state || ''} onChange={(e) => setCheckoutField('state', e.target.value)} placeholder="State / Province" className={fieldClass} />
+              )}
+            </Field>
+          </div>
+          <Field label={checkoutForm.country === 'India' ? 'PIN Code *' : 'ZIP / Postcode *'}>
             <input
               type="text"
+              inputMode={checkoutForm.country === 'India' ? 'numeric' : 'text'}
+              autoComplete="postal-code"
               value={checkoutForm.pinCode}
-              onChange={(e) => setCheckoutForm({ ...checkoutForm, pinCode: e.target.value })}
-              placeholder="6-digit Indian PIN or international zip"
-              className="w-full border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[var(--heritageGold)] font-medium"
+              onChange={(e) => setCheckoutField('pinCode', e.target.value.replace(/[^\dA-Za-z\s-]/g, ''))}
+              placeholder={checkoutForm.country === 'India' ? '6-digit Indian PIN' : 'ZIP / Postcode'}
+              className={fieldClass}
             />
-          </div>
+            {checkoutForm.country === 'India' && checkoutForm.pinCode.replace(/\D/g, '').length > 0 && checkoutForm.pinCode.replace(/\D/g, '').length < 6 && /^\d+$/.test(checkoutForm.pinCode.trim()) && (
+              <p className="text-[9px] text-amber-700 mt-1">Keep typing — shipping updates as PIN is entered ({checkoutForm.pinCode.replace(/\D/g, '').length}/6)</p>
+            )}
+            {shippingQuote.zone === 'International' && (
+              <p className="text-[9px] text-amber-800 mt-1 font-medium">
+                International location — invoice will be sent to +65 9116 9217 (Global desk).
+              </p>
+            )}
+          </Field>
+          <Field label="Phone (WhatsApp) *">
+            <input type="tel" autoComplete="tel" value={checkoutForm.phone} onChange={(e) => setCheckoutField('phone', e.target.value)} placeholder="+91 98765 43210" className={fieldClass} />
+          </Field>
+          <Field label="Email address">
+            <input type="email" autoComplete="email" value={checkoutForm.email || ''} onChange={(e) => setCheckoutField('email', e.target.value)} placeholder="name@domain.com" className={fieldClass} />
+          </Field>
         </div>
 
-        {cart.length > 0 && shippingQuote.type === 'domestic' && (
-          <div className="bg-white border border-emerald-200 rounded-lg p-2.5 text-[10px]">
-            <div className="flex justify-between font-bold text-[var(--heritageBrown)]">
-              <span>🇮🇳 India · PIN {shippingQuote.pinCode}</span>
-              <span>₹{DOMESTIC_PIN_SHIPPING}</span>
-            </div>
-            <p className="mt-1 text-gray-500">{shippingQuote.breakdown} · {shippingQuote.transit}</p>
-          </div>
+        {shippingQuote.zone === 'International' && (
+          <InternationalNotice variant="checkout" />
         )}
 
-        {cart.length > 0 && shippingQuote.type === 'international' && (
-          <div className="bg-white border border-amber-200 rounded-lg p-2.5 text-[10px]">
-            <div className="flex justify-between font-bold text-[var(--heritageBrown)]">
-              <span>🌍 International · {shippingQuote.pinCode}</span>
-              <span>{shippingLine}</span>
+        {cart.length > 0 && (
+          <div className="bg-white border border-stone-200 rounded-lg overflow-hidden">
+            <div className="px-2.5 py-2 border-b border-stone-100 flex items-center justify-between">
+              <p className="text-[9px] font-black uppercase tracking-wider text-gray-400">Shipping method</p>
+              {(shippingQuote.type === 'domestic' || shippingQuote.type === 'domestic-preview') && (
+                <span className="text-[9px] font-bold text-emerald-700">{shippingQuote.totalWeightShort}</span>
+              )}
+              {shippingQuote.zone === 'International' && (
+                <span className="text-[9px] font-bold text-amber-800">{shippingQuote.totalWeightShort}</span>
+              )}
             </div>
-            <p className="mt-1 text-gray-500">{shippingQuote.breakdown}</p>
-            {shippingQuote.isCalculatedAtDispatch && (
-              <p className="mt-1 text-amber-700">Final export freight confirmed on WhatsApp before dispatch.</p>
+            {(shippingQuote.type === 'domestic' || shippingQuote.type === 'domestic-preview') ? (
+              <label className="flex items-start gap-2.5 p-2.5 cursor-default">
+                <input type="radio" checked readOnly className="mt-0.5 accent-[var(--heritageGold)]" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-baseline gap-2">
+                    <span className="font-black text-[11px] text-[var(--heritageBrown)]">Weight-based</span>
+                    <span key={`${shippingQuote.pinCode}-${shippingQuote.amount}-${shippingQuote.totalWeightGrams}`} className="font-black text-lg text-[var(--chiliRed)]">
+                      ₹{shippingQuote.amount}
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-bold text-emerald-800 mt-0.5">
+                    Total weight {shippingQuote.totalWeightLabel}
+                  </p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">{shippingQuote.breakdown}</p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">{shippingQuote.transit}{shippingQuote.pinCode ? ` · PIN ${shippingQuote.pinCode}` : ''}</p>
+                  {shippingQuote.type === 'domestic-preview' && (
+                    <p className="text-[9px] text-amber-700 mt-1">Enter all 6 digits to confirm this India shipping rate.</p>
+                  )}
+                  <p className="text-[9px] text-gray-500 mt-1.5 leading-relaxed">
+                    ₹149 for the first 1kg, then ₹60 for every extra 1kg (or part thereof). If the courier quotes differently, we will inform you on WhatsApp before you pay.
+                  </p>
+                </div>
+              </label>
+            ) : shippingQuote.type === 'international' ? (
+              <label className="flex items-start gap-2.5 p-2.5 cursor-default">
+                <input type="radio" checked readOnly className="mt-0.5 accent-[var(--heritageGold)]" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-baseline gap-2">
+                    <span className="font-black text-[11px] text-[var(--heritageBrown)]">International shipping</span>
+                    <span className="font-black text-sm text-[var(--heritageBrown)]">{shippingLine}</span>
+                  </div>
+                  <p className="text-[10px] font-bold text-amber-800 mt-0.5">
+                    Total weight {shippingQuote.totalWeightLabel}
+                  </p>
+                  <p className="text-[10px] text-gray-500 mt-0.5">{shippingQuote.breakdown}</p>
+                  <p className="text-[9px] text-amber-800 mt-1.5 leading-relaxed">
+                    Customs duties, import taxes, and local charges (if any) are the responsibility of the customer.
+                  </p>
+                </div>
+              </label>
+            ) : (
+              <p className="p-2.5 text-[10px] text-gray-400">
+                Order weight {shippingQuote.totalWeightLabel || '—'}. Enter a 6-digit Indian PIN for weight-based shipping, or an international ZIP/postcode.
+              </p>
             )}
           </div>
         )}
@@ -255,7 +371,7 @@ export function CartDrawer() {
 
         {cart.length > 0 && !whatsappRouting.isRoutable && (
           <div className="rounded-lg p-2.5 text-[10px] border border-dashed border-stone-300 bg-white text-gray-500">
-            Enter a valid Pin Code / Zip to route your invoice to the correct WhatsApp desk.
+            Enter a valid Pin / Zip to route your invoice. India 6-digit PIN → +91 7989350068. International ZIP → +65 9116 9217.
           </div>
         )}
       </div>
@@ -268,15 +384,24 @@ export function CartDrawer() {
             <span>₹{cartSubtotal}.00</span>
           </div>
           <div className="flex justify-between text-gray-600">
-            <span>Shipping</span>
-            <span>{shippingLine}</span>
+            <span>Total weight</span>
+            <span className="font-bold text-[var(--heritageBrown)]">{shippingQuote.totalWeightLabel || '—'}</span>
+          </div>
+          <div className="flex justify-between text-gray-600">
+              <span>Shipping</span>
+              <span className="font-black text-[var(--heritageBrown)]">{shippingLine}</span>
           </div>
           {shippingQuote.isCalculatedAtDispatch && (
-            <p className="text-[9px] text-amber-700 font-medium">International freight added after dispatch quote on WhatsApp.</p>
+            <p className="text-[9px] text-amber-700 font-medium">International shipping is to be calculated. Kitchen will confirm courier cost on WhatsApp using the total order weight.</p>
+          )}
+          {(shippingQuote.type === 'domestic' || shippingQuote.type === 'domestic-preview') && (
+            <p className="text-[9px] text-gray-500 font-medium">{shippingQuote.breakdown}</p>
           )}
           <div className="flex justify-between font-black text-base text-[var(--heritageBrown)] pt-1 border-t">
             <span>Total Bill</span>
-            <span>₹{orderTotal}.00</span>
+            <span>
+              {shippingQuote.isCalculatedAtDispatch ? `₹${orderTotal}.00 + shipping` : `₹${orderTotal}.00`}
+            </span>
           </div>
         </div>
         <button type="button" onClick={handlePdfDownload} className="w-full border-2 border-[var(--heritageBrown)] text-[var(--heritageBrown)] py-2.5 rounded-lg font-black flex items-center justify-center gap-2 text-xs uppercase tracking-wider hover:bg-stone-50 transition-colors">
@@ -285,19 +410,28 @@ export function CartDrawer() {
         <button
           type="button"
           onClick={handleWhatsAppCheckout}
-          disabled={!canRouteWhatsApp}
+          disabled={!canRouteWhatsApp || checkoutBusy}
           className={`w-full py-3 rounded-lg font-black flex items-center justify-center gap-2 shadow text-xs uppercase tracking-wider ${
-            canRouteWhatsApp
-              ? 'bg-[#25D366] text-white hover:brightness-105'
-              : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+            checkoutBusy
+              ? 'bg-[#25D366] text-white cursor-wait opacity-90'
+              : canRouteWhatsApp
+                ? 'bg-[#25D366] text-white hover:brightness-105'
+                : 'bg-gray-200 text-gray-400 cursor-not-allowed'
           }`}
         >
-          ✅ Place Order & Checkout
+          {checkoutBusy ? (
+            <>
+              <span className="inline-block w-3.5 h-3.5 border-2 border-white/40 border-t-white rounded-full animate-spin" aria-hidden="true" />
+              Processing Order...
+            </>
+          ) : (
+            <>🚀 Secure Checkout</>
+          )}
         </button>
         <p className="text-[10px] text-center text-gray-400 font-medium leading-relaxed">
           {canRouteWhatsApp && desk ? (
             <>
-              PDF receipt · WhatsApp to kitchen ({desk.display}) · Confirmation within 12 hours
+              PDF receipt · Kitchen confirms within 12 hours via WhatsApp: ORDER CONFIRMED ✅
             </>
           ) : (
             'Fill all details + Pin / Zip above to checkout'
@@ -345,7 +479,7 @@ export function WishlistDrawer() {
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px]">
                       <span className="font-black text-[var(--heritageBrown)]">₹{item.price}</span>
                       <span className="text-gray-400">·</span>
-                      <span className="font-bold text-gray-600">{item.weightLabel}</span>
+                      <span className="font-bold text-gray-600">Weight {item.weightLabel}</span>
                     </div>
                     <div className="text-[10px] text-gray-500 font-medium">
                       {item.garlic === 'With Garlic' ? '🧄 With Garlic' : '🚫 Without Garlic'}

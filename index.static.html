@@ -454,7 +454,7 @@
                     <button onclick="downloadPdfReceipt()" class="w-full border-2 border-[var(--heritageBrown)] text-[var(--heritageBrown)] py-2.5 rounded-lg font-black flex items-center justify-center gap-2 text-xs uppercase tracking-wider hover:bg-stone-50 transition-colors">
                         📄 Download PDF Receipt
                     </button>
-                    <button onclick="compileAndRouteWhatsAppOrderWorkflow()" class="w-full bg-[#25D366] text-white py-2.5 rounded-lg font-black flex items-center justify-center gap-2 shadow text-xs uppercase tracking-wider">
+                    <button id="secure-checkout-btn" onclick="compileAndRouteWhatsAppOrderWorkflow()" class="w-full bg-[#25D366] text-white py-2.5 rounded-lg font-black flex items-center justify-center gap-2 shadow text-xs uppercase tracking-wider">
                         🚀 Secure Checkout via WhatsApp
                     </button>
                     <p id="checkout-desk-hint" class="text-[10px] text-center text-gray-400 font-medium">Orders route to <span class="font-bold text-[var(--heritageBrown)]">+91 7989350068</span> (India)</p>
@@ -1124,12 +1124,59 @@
             totalDisplay.innerText = `₹${total}.00`;
         }
 
-        function compileAndRouteWhatsAppOrderWorkflow() {
+        const SHEETDB_API_URL = "https://sheetdb.io/api/v1/6hz5lv9h4a5ez";
+
+        async function compileAndRouteWhatsAppOrderWorkflow() {
             const order = collectCheckoutOrderData();
             if (!order) return;
 
-            const msg = buildWhatsAppInvoiceMessage(order);
-            window.open(`https://wa.me/${order.whatsappNumber}?text=${encodeURIComponent(msg)}`, "_blank");
+            const btn = document.getElementById("secure-checkout-btn");
+            const originalLabel = btn ? btn.innerHTML : "";
+            if (btn) {
+                btn.disabled = true;
+                btn.innerHTML = "Processing Order...";
+            }
+
+            const sheetRow = {
+                Date: order.date || "",
+                Name: order.name || "",
+                Phone: order.phone || "",
+                Address: order.address || "",
+                Items: (order.items || []).map((item) => `${item.name} x${item.qty}`).join(", "),
+                Weight: order.totalWeightLabel || "",
+                Total: `Rs.${order.total}.00`,
+                Status: "Pending",
+            };
+
+            try {
+                if (!SHEETDB_API_URL || /PASTE YOUR URL HERE/i.test(SHEETDB_API_URL)) {
+                    throw new Error("SheetDB API URL is missing");
+                }
+
+                const response = await fetch(SHEETDB_API_URL, {
+                    method: "POST",
+                    headers: {
+                        Accept: "application/json",
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ data: [sheetRow] }),
+                });
+
+                if (!response.ok) {
+                    throw new Error("SheetDB save failed");
+                }
+
+                const msg = buildWhatsAppInvoiceMessage(order);
+                const whatsappUrl = `https://wa.me/${order.whatsappNumber}?text=${encodeURIComponent(msg)}`;
+                window.open(whatsappUrl, "_blank");
+            } catch (error) {
+                alert("Could not log this order to the sheet yet. WhatsApp will open only after the order is saved. Please try again.");
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalLabel || "🚀 Secure Checkout via WhatsApp";
+                }
+            }
         }
 
         function filterCatalogItemsFuzzy(q) {

@@ -1,4 +1,6 @@
-export const CLOUD_PICKLES_DB = [
+const withWeight = (items, weightGrams) => items.map((item) => ({ ...item, weightGrams }));
+
+export const CLOUD_PICKLES_DB = withWeight([
   { id: 'dosa-avakaya', name: 'Dosa-Avakaya (Yellow Cucumber)', desc: 'Crisp cucumber blocks in custom mustard-chili marinades.', price: 800, unit: 'KG', emoji: '🥒' },
   { id: 'avakaya-mango', name: 'Avakaya (Mango)', desc: 'The pride of Andhra—firm green mango block recipes.', price: 800, unit: 'KG', emoji: '🥭' },
   { id: 'bellam-avakaya', name: 'Bellam Avakaya (Jaggery Mango)', desc: 'Sweet-sour recipe blending molten jaggery matrices.', price: 800, unit: 'KG', emoji: '🍯' },
@@ -15,9 +17,9 @@ export const CLOUD_PICKLES_DB = [
   { id: 'maggai', name: 'Maggai (Tender Mango)', desc: 'Sun-dried shredded mango strips with rich methi layers.', price: 800, unit: 'KG', emoji: '🥭' },
   { id: 'gongura-pandu', name: 'Gongura Pandumirchi', desc: 'Tangy sorrel leaves combined with hot ripe red chilis.', price: 800, unit: 'KG', emoji: '🌿' },
   { id: 'pulihara-avakaya', name: 'Pulihara Avakaya', desc: 'Fusion of green mango blocks and tamarind pulihara reductions.', price: 800, unit: 'KG', emoji: '🍛' },
-];
+], 1000);
 
-export const CLOUD_PODIS_DB = [
+export const CLOUD_PODIS_DB = withWeight([
   { id: 'kandi-podi', name: 'Kandi Podi', desc: 'Roasted yellow split-pigeon peas, ground to mix with hot ghee rice.', price: 180, unit: '200g', emoji: '🌾' },
   { id: 'karvepak-podi', name: 'Karvepak Podi', desc: 'Aromatic green blend made from crisp curry leaves and cumin seeds.', price: 180, unit: '200g', emoji: '🌿' },
   { id: 'sambar-podi', name: 'Sambar Podi', desc: 'Traditional spice layout using coriander seeds and dry chilis.', price: 180, unit: '200g', emoji: '🍲' },
@@ -28,9 +30,9 @@ export const CLOUD_PODIS_DB = [
   { id: 'palli-podi', name: 'Palli Podi', desc: 'Savory peanut meal stone-churned with roasted garlic cloves.', price: 180, unit: '200g', emoji: '🥜' },
   { id: 'chutney-podi', name: 'Chutney Podi', desc: 'Roasted dal formulation designed to make instant dipping sides with water.', price: 180, unit: '200g', emoji: '🥣' },
   { id: 'kobbari-karam-podi', name: 'Kobbari Karam Podi', desc: 'Freshly dehydrated coconut shreds crushed with hot red chilies.', price: 180, unit: '200g', emoji: '🥥' },
-];
+], 200);
 
-export const CLOUD_FRYUMS_DB = [
+export const CLOUD_FRYUMS_DB = withWeight([
   { id: 'gummadi-vadiyalu', name: 'Gummadi Vadiyalu (Ash Gourd)', desc: 'Traditional hand-dropped ash gourd chunks with pulse batters.', price: 300, unit: '200g', emoji: '☀️' },
   { id: 'sago-papads', name: 'Sago Papads (Sabudana)', desc: 'Translucent tapioca pearl discs sun-cured on high terrace layouts.', price: 140, unit: '200g', emoji: '⚪' },
   { id: 'tomato-papads', name: 'Tomato Flavoured Papads', desc: 'Dehydrated tomato pulp processed cleanly into crispy wafers.', price: 140, unit: '200g', emoji: '🍅' },
@@ -38,7 +40,7 @@ export const CLOUD_FRYUMS_DB = [
   { id: 'muruku-fryums', name: 'Muruku Shaped Fryums', desc: 'Coiled loop spirals extruded using hand brass presses.', price: 140, unit: '200g', emoji: '🌀' },
   { id: 'rice-papads', name: 'Rice Papads', desc: 'Pristine white crackers prepared utilizing filtered rice starch cooks.', price: 120, unit: '200g', emoji: '🍚' },
   { id: 'challa-mirapa', name: 'Challa Mirapakayallu', desc: 'Traditional curd-soaked, salt-cured green chilis sun-baked down.', price: 300, unit: '200g', emoji: '🌶️' },
-];
+], 200);
 
 export const ALL_PRODUCTS = [...CLOUD_PICKLES_DB, ...CLOUD_PODIS_DB, ...CLOUD_FRYUMS_DB];
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../context/StoreContext';
-import { DOMESTIC_PIN_SHIPPING, INTERNATIONAL_SHIPPING } from '../data/shipping';
+import { INTERNATIONAL_SHIPPING } from '../data/shipping';
+import InternationalNotice from './InternationalNotice';
 
 const TABS = [
   { id: 'about', label: 'About Us' },
@@ -17,7 +18,10 @@ function TabContent({ tab }) {
       <div className="space-y-2">
         <h3 className="font-serif font-black text-base text-[var(--heritageBrown)]">Our Traditional Kitchen Story</h3>
         <p>Welcome to <strong>Pickle Jaadi</strong>, where we honor age-old traditional recipes passed down through generations in coastal Andhra Pradesh.</p>
-        <p>Every single batch of our authentic heritage recipes follows our dedicated <strong>Fresh Post-Order Preparation Model</strong>. We never warehouse pre-made or stale food stocks. The moment your automated invoice transitions into our messaging terminal boards, our culinary kitchen teams trigger raw ingredient scaling and complete hand-crafted production cycles inside a locked 12-hour confirmation and execution window, ensuring pristine structural integrity and flavor preservation before express transit dispatch.</p>
+        <p>
+          We are in partnership with <strong>Savitri Foods</strong>, a <strong>Singapore-registered company</strong>. Our Andhra kitchen prepares every batch fresh to order; Savitri Foods supports international quality standards and our global customer desk in Singapore.
+        </p>
+        <p>Every single batch of our authentic heritage recipes follows our dedicated <strong>Fresh Post-Order Preparation Model</strong>. We never warehouse pre-made or stale food stocks. The moment your order is confirmed, our culinary kitchen teams trigger raw ingredient scaling and complete hand-crafted production inside a locked 12-hour confirmation window, ensuring pristine flavor before dispatch.</p>
       </div>
     );
   }
@@ -31,11 +35,12 @@ function TabContent({ tab }) {
             <p className="text-sm font-bold mt-0.5">📞 +91 7989350068</p>
           </div>
           <div className="border rounded-xl p-3 bg-white shadow-sm">
-            <span className="block text-[9px] font-black uppercase text-[var(--heritageGold)]">Global Desk (International)</span>
+            <span className="block text-[9px] font-black uppercase text-[var(--heritageGold)]">Global Desk · Savitri Foods (Singapore)</span>
             <p className="text-sm font-bold mt-0.5">🇸🇬 +65 9116 9217</p>
+            <p className="text-[10px] text-gray-500 mt-1 font-medium">Singapore-registered partner company</p>
           </div>
         </div>
-        <p className="text-[11px] pt-1">📍 <strong>Address:</strong> Door No. 12-4-56, Ramaraopeta, Near Main Market Tower, Kakinada - 533001, Andhra Pradesh, India.<br />✉️ <strong>Email:</strong> picklejaadiindia@gmail.com</p>
+        <p className="text-[11px] pt-1">📍 <strong>India kitchen:</strong> Door No. 12-4-56, Ramaraopeta, Near Main Market Tower, Kakinada - 533001, Andhra Pradesh, India.<br />🇸🇬 <strong>International partner:</strong> Savitri Foods — Singapore-registered company.<br />✉️ <strong>Email:</strong> picklejaadiindia@gmail.com</p>
       </div>
     );
   }
@@ -43,14 +48,25 @@ function TabContent({ tab }) {
     return (
       <div className="space-y-3">
         <h3 className="font-serif font-black text-base text-[var(--heritageBrown)]">Shipping, Export & Payment Guidelines</h3>
-        <p><strong>Payment Processing:</strong> Final billing handles cleanly via secure customized payment interfaces (UPI links, Google Pay, or dynamic international credit checkout layers) over WhatsApp conversation boards.</p>
+        <p>We ship both domestically within India and internationally. International orders are coordinated with <strong>Savitri Foods</strong>, a Singapore-registered company.</p>
+        <p><strong>Payment:</strong> UPI, Google Pay, or international payment details are shared on WhatsApp after your order is confirmed.</p>
         <div className="bg-white border border-stone-200 rounded-xl p-3 text-[11px] space-y-2">
-          <p className="font-black text-[var(--heritageBrown)] uppercase tracking-wider text-[10px]">Smart Delivery Detection</p>
-          <p>Enter your <strong>Pin Code / Zip Code</strong> at checkout. The system detects your destination automatically:</p>
+          <p className="font-black text-[var(--heritageBrown)] uppercase tracking-wider text-[10px]">Domestic Shipping (India)</p>
           <ul className="list-disc pl-4 space-y-1 text-gray-600">
-            <li><strong>6-digit Indian PIN</strong> → domestic delivery <strong>₹{DOMESTIC_PIN_SHIPPING}</strong> (2–4 business days)</li>
-            <li><strong>International zip/postcode</strong> → {INTERNATIONAL_SHIPPING.mode === 'fixed' ? `export freight ₹${INTERNATIONAL_SHIPPING.fixedRate}` : 'Calculated at Dispatch (confirmed on WhatsApp)'}</li>
+            <li>Enter your 6-digit Indian PIN at checkout. Shipping is calculated from <strong>total order weight</strong>.</li>
+            <li><strong>₹149</strong> for the first 1kg (1000g), then <strong>₹60</strong> for every additional 1kg or part thereof.</li>
+            <li>Example: 1kg pickle = ₹149 · 1kg pickle + 200g podi (1.2kg) = ₹209.</li>
+            <li>Estimated delivery time is 2–5 business days.</li>
+            <li>If the courier later quotes a different amount, we will inform you on WhatsApp before you pay.</li>
           </ul>
+        </div>
+        <InternationalNotice variant="policy" />
+        <p className="text-gray-500 text-[11px] leading-relaxed">
+          International shipping is shown at checkout as <strong>{INTERNATIONAL_SHIPPING.mode === 'fixed' ? `₹${INTERNATIONAL_SHIPPING.fixedRate}` : 'To be calculated'}</strong>. The total order weight is displayed in your cart so the kitchen can quote courier cost on WhatsApp before payment.
+        </p>
+        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 text-[11px] space-y-1.5 text-emerald-900">
+          <p className="font-black uppercase tracking-wider text-[10px]">Order confirmation (12-hour window)</p>
+          <p className="leading-relaxed">Placing an order means it is <strong>received</strong>, not yet confirmed. Within 12 hours our kitchen sends a WhatsApp message titled <strong>ORDER CONFIRMED ✅</strong>. That message is your official confirmation, followed by payment details on the same chat. Fresh preparation starts only after confirmation.</p>
         </div>
         <p className="text-gray-500 text-[11px]">Customs duties at destination (if applicable) are the customer&apos;s responsibility for international orders.</p>
       </div>
