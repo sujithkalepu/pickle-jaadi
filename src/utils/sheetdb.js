@@ -2,8 +2,26 @@ import { SHEETDB_API_URL } from '../data/sheetdb';
 
 function formatItemList(items = []) {
   return items
-    .map((item) => `${item.name}${item.nameTe ? ` (${item.nameTe})` : ''} (${item.weightLabel || item.unit || 'item'}) x${item.qty}`)
-    .join(', ');
+    .map((item) => `${item.name} — ${item.weightLabel || item.unit || 'item'} x${item.qty}`)
+    .join('\n');
+}
+
+function formatSheetAddress(order) {
+  const lines = [
+    [order.street, order.apartment].filter(Boolean).join(', '),
+    [order.city, order.state].filter(Boolean).join(', '),
+  ]
+    .map((part) => String(part || '').trim())
+    .filter(Boolean);
+
+  if (lines.length) return lines.join('\n');
+
+  return String(order.address || '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .join('\n');
 }
 
 export function buildSheetOrderRow(order, currentUser) {
@@ -21,7 +39,7 @@ export function buildSheetOrderRow(order, currentUser) {
     Name: order.name || '',
     Phone: order.phone || '',
     Email: email,
-    Address: order.address || '',
+    Address: formatSheetAddress(order),
     PinCode: order.pinCode || '',
     Zone: order.shippingZone || '',
     Items: formatItemList(order.items),

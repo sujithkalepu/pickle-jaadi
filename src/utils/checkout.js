@@ -1,8 +1,8 @@
 import { jsPDF } from 'jspdf';
 import { parseDeliveryPinCode } from '../data/shipping';
 import { composeCheckoutIdentity } from '../data/addressOptions';
-import { formatWeightFull, formatWeightShort, getCartWeightGrams, getLineWeightGrams } from './productPricing';
-import { getWhatsAppCheckoutUrl, normalizeCustomerWhatsAppNumber, resolveWhatsAppDesk } from './whatsappRouting';
+import { formatWeightFull, getCartWeightGrams, getLineWeightGrams } from './productPricing';
+import { getWhatsAppCheckoutUrl, resolveWhatsAppDesk } from './whatsappRouting';
 
 export function generateInvoiceId() {
   const now = new Date();
@@ -118,97 +118,107 @@ export function collectCheckoutOrderData(
   };
 }
 
-export function buildWhatsAppInvoiceMessage(order) {
-  const routeLabel = order.shippingZone === 'International' ? 'Global Export' : 'Within India';
-  let msg = '*PICKLE JAADI — OFFICIAL ORDER INVOICE*\n';
-  msg += '━━━━━━━━━━━━━━━━━━━━\n';
-  msg += `*Invoice No:* ${order.invoiceId}\n`;
-  msg += `*Date:* ${order.date}\n`;
-  msg += `*Dispatch Route:* ${routeLabel}\n`;
-  msg += `*Pin / Zip:* ${order.pinCode}\n`;
-  msg += `*Kitchen Desk:* ${order.whatsappDisplay}\n`;
-  if (order.memberBadge) msg += `*Member Status:* ${order.memberBadge}\n`;
-  msg += '\n*CUSTOMER DETAILS*\n';
-  msg += `Name: ${order.name}\n`;
-  msg += `WhatsApp: ${order.phone}\n`;
-  if (order.email) msg += `Email: ${order.email}\n`;
-  msg += `Address: ${order.address}\n`;
-  if (order.country) msg += `Country: ${order.country}\n`;
-  msg += '\n*ORDER ITEMS*\n';
-  order.items.forEach((item, idx) => {
-    msg += `${idx + 1}. ${item.name}${item.nameTe ? ` (${item.nameTe})` : ''}\n`;
-    msg += `   ${item.weightLabel} · ${item.garlic}\n`;
-    msg += `   Weight: ${formatWeightShort(item.weightGrams)} × ${item.qty} = ${item.lineWeightLabel || formatWeightFull(item.lineWeightGrams)}\n`;
-    msg += `   Qty: ${item.qty} x Rs.${item.unitPrice} = *Rs.${item.lineTotal}*\n`;
-  });
-  msg += '\n━━━━━━━━━━━━━━━━━━━━\n';
-  msg += `*TOTAL ORDER WEIGHT:* ${order.totalWeightLabel || formatWeightFull(order.totalWeightGrams)}\n`;
-  msg += `*SUBTOTAL:* Rs.${order.subtotal}.00\n`;
-  if (order.isCalculatedAtDispatch) {
-    msg += `*SHIPPING:* To be calculated (use total weight above for courier quote)\n`;
-    msg += `*TOTAL (excl. intl. freight):* *Rs.${order.total}.00*\n`;
-  } else {
-    msg += `*SHIPPING (${order.shippingLabel}):* Rs.${order.shippingFee}.00\n`;
-    if (order.shippingBreakdown) msg += `_${order.shippingBreakdown}_\n`;
-    msg += `*TOTAL AMOUNT DUE:* *Rs.${order.total}.00*\n`;
-  }
-  msg += '\n*FRESH PREP COMMITMENT:*\n';
-  msg += 'Order is received. Kitchen must confirm within 12 hours.\n';
-  msg += '\n*KITCHEN ACTION (within 12 hours):*\n';
-  msg += '1. Check PIN, address, items, total order weight and courier charge.\n';
-  msg += '2. Confirm the order.\n';
-  msg += '3. Copy the message below and send it to the customer on WhatsApp.\n';
-  msg += '4. If the courier charge is DIFFERENT from this invoice, tell the customer the new shipping amount on WhatsApp BEFORE they pay.\n';
-  msg += '\n———————— COPY & SEND TO CUSTOMER ————————\n';
-  msg += buildOrderConfirmedCustomerMessage(order);
-  msg += '\n———————————————————————————————';
-  return msg;
+function rupees(amount) {
+  return `Rs.${amount}`;
 }
 
-/** Message kitchen sends to the customer after confirming within 12 hours. */
+/** Helvetica cannot draw Telugu; strip it so item names do not scramble over prices. */
+function pdfSafeText(value) {
+  return String(value || '')
+    .replace(/[\u0C00-\u0C7F]/g, '')
+    .replace(/[\u0000-\u001F]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\(\s*\)/g, '')
+    .trim();
+}
+
+function formatInvoiceItemLine(item, idx) {
+  const pack = [item.weightLabel, item.garlic].filter(Boolean).join(', ');
+  return `${idx + 1}. ${item.name} — ${pack} × ${item.qty} = ${rupees(item.lineTotal)}`;
+}
+
+export function buildWhatsAppInvoiceMessage(order) {
+  const route = order.shippingZone === 'International' ? 'International' : 'India';
+  const lines = [
+    '*Pickle Jaadi — New Order*',
+    '',
+    `Invoice: ${order.invoiceId}`,
+    `Date: ${order.date}`,
+    `Route: ${route} · ${order.pinCode}`,
+    '',
+    '*Customer*',
+    order.name,
+    order.phone,
+  ];
+  if (order.email) lines.push(order.email);
+  lines.push(order.address);
+  if (order.country && order.shippingZone === 'International') lines.push(order.country);
+
+  lines.push('', '*Items*');
+  order.items.forEach((item, idx) => lines.push(formatInvoiceItemLine(item, idx)));
+
+  lines.push(
+    '',
+    `Weight: ${order.totalWeightLabel || formatWeightFull(order.totalWeightGrams)}`,
+    `Subtotal: ${rupees(order.subtotal)}`,
+  );
+
+  if (order.isCalculatedAtDispatch) {
+    lines.push('Shipping: To be calculated');
+    lines.push(`*Total (excl. freight): ${rupees(order.total)}*`);
+  } else {
+    lines.push(`Shipping: ${rupees(order.shippingFee)}`);
+    lines.push(`*Total: ${rupees(order.total)}*`);
+  }
+
+  lines.push(
+    '',
+    'Please confirm within 12 hours. Share payment details after confirmation. If courier charge differs, inform the customer before they pay.',
+  );
+
+  return lines.join('\n');
+}
+
+/** Short confirmation kitchen can send after reviewing the order. */
 export function buildOrderConfirmedCustomerMessage(order) {
   const shippingNote = order.isCalculatedAtDispatch
-    ? `International freight: to be calculated · order weight ${order.totalWeightLabel || formatWeightFull(order.totalWeightGrams)}`
-    : `Shipping: Rs.${order.shippingFee}.00 · weight ${order.totalWeightLabel || formatWeightFull(order.totalWeightGrams)}`;
+    ? `Shipping: to be confirmed · ${order.totalWeightLabel || formatWeightFull(order.totalWeightGrams)}`
+    : `Shipping: ${rupees(order.shippingFee)}`;
 
-  let msg = `*PICKLE JAADI — ORDER CONFIRMED ✅*\n`;
-  msg += '━━━━━━━━━━━━━━━━━━━━\n';
-  msg += `Hi ${order.name}!\n\n`;
-  msg += `Good news — your order is *CONFIRMED*.\n\n`;
-  msg += `*Order No:* ${order.invoiceId}\n`;
-  msg += `*Status:* Confirmed — kitchen preparation has started\n`;
-  msg += `*Date placed:* ${order.date}\n`;
-  msg += `*Amount:* Rs.${order.total}.00\n`;
-  msg += `*Total Order Weight:* ${order.totalWeightLabel || formatWeightFull(order.totalWeightGrams)}\n`;
-  msg += `*${shippingNote}*\n\n`;
-  msg += `*Payment:*\n`;
-  msg += `Please complete payment on this WhatsApp chat. Our kitchen will share the UPI / Google Pay details here.\n\n`;
-  msg += `If delivery charges change, we will inform you on this chat with the new amount before you pay.\n\n`;
-  msg += `Fresh preparation starts now. We will update you with packing and dispatch details.\n\n`;
-  msg += `Save this message as your confirmation. For any help, reply here with your order number.\n\n`;
-  msg += `— Pickle Jaadi Kitchen`;
-  return msg;
+  return [
+    '*Pickle Jaadi — Order Confirmed*',
+    '',
+    `Hi ${order.name},`,
+    '',
+    `Your order ${order.invoiceId} is confirmed.`,
+    `Amount: ${rupees(order.total)}`,
+    shippingNote,
+    '',
+    'We will share UPI / Google Pay details on this chat. If delivery charges change, we will tell you before you pay.',
+    '',
+    'Thank you.',
+    '— Pickle Jaadi',
+  ].join('\n');
 }
 
 export function buildCustomerWhatsAppMessage(order) {
-  let msg = `*PICKLE JAADI — ORDER RECEIVED*\n`;
-  msg += '━━━━━━━━━━━━━━━━━━━━\n';
-  msg += `Hi ${order.name}! Thank you for your order.\n\n`;
-  msg += `*Order No:* ${order.invoiceId}\n`;
-  msg += `*Status:* Pending Kitchen Confirmation\n`;
-  msg += `*Date:* ${order.date}\n`;
-  msg += `*Total:* Rs.${order.total}.00\n`;
-  msg += `*Total Order Weight:* ${order.totalWeightLabel || formatWeightFull(order.totalWeightGrams)}\n`;
-  msg += `*Kitchen Desk:* ${order.whatsappDisplay}\n\n`;
-  msg += `📄 Your PDF invoice has been downloaded — please keep it.\n\n`;
-  msg += `*Next steps:*\n`;
-  msg += `1. Watch WhatsApp for a message titled *ORDER CONFIRMED ✅* from our kitchen within 12 hours.\n`;
-  msg += `2. That message is your official confirmation. Until then, your order is *received, not yet confirmed*.\n`;
-  msg += `3. After confirmation, we share payment details (UPI / Google Pay) on the same chat.\n`;
-  msg += `4. If shipping later changes, we will inform you on WhatsApp before you pay.\n`;
-  msg += `5. Fresh preparation starts only after you receive the confirmation message.\n\n`;
-  msg += `Reply to this chat if you have questions. — Pickle Jaadi`;
-  return msg;
+  return [
+    '*Pickle Jaadi*',
+    '',
+    `Hi ${order.name},`,
+    '',
+    'Thank you. Your order has been received.',
+    '',
+    `Order: ${order.invoiceId}`,
+    `Total: ${rupees(order.total)}`,
+    `Weight: ${order.totalWeightLabel || formatWeightFull(order.totalWeightGrams)}`,
+    '',
+    'Our kitchen will confirm within 12 hours and then share payment details on this chat.',
+    '',
+    'A PDF invoice has been saved on your device.',
+    '',
+    '— Pickle Jaadi',
+  ].join('\n');
 }
 
 export function downloadPdfReceipt(order, { autoSave = true } = {}) {
@@ -270,32 +280,48 @@ export function downloadPdfReceipt(order, { autoSave = true } = {}) {
   }
   y += 4;
 
+  const colNo = 18;
+  const colDesc = 26;
+  const descWidth = 88;
+  const colQty = 128;
+  const colRate = 158;
+  const colAmt = 195;
+
   doc.setFillColor(...cream);
   doc.rect(15, y - 4, 180, 8, 'F');
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(...brown);
-  doc.text('#', 18, y);
-  doc.text('Item Description', 28, y);
-  doc.text('Qty', 130, y);
-  doc.text('Rate', 150, y);
-  doc.text('Amount', 175, y);
-  y += 8;
+  doc.text('#', colNo, y);
+  doc.text('Item', colDesc, y);
+  doc.text('Qty', colQty, y, { align: 'right' });
+  doc.text('Rate', colRate, y, { align: 'right' });
+  doc.text('Amount', colAmt, y, { align: 'right' });
+  y += 10;
 
   doc.setFont('helvetica', 'normal');
   order.items.forEach((item, idx) => {
-    if (y > 265) {
+    if (y > 250) {
       doc.addPage();
       y = 20;
     }
+    const nameLines = doc.splitTextToSize(pdfSafeText(item.name) || 'Item', descWidth);
+    const pack = [item.weightLabel, item.garlic].filter(Boolean).join(' · ');
+    const rowHeight = nameLines.length * 5 + (pack ? 5 : 0) + 4;
+
     doc.setTextColor(60, 60, 60);
-    doc.text(String(idx + 1), 18, y);
-    const itemLabel = `${item.name}${item.nameTe ? ` (${item.nameTe})` : ''} (${item.weightLabel}, ${item.garlic}, ${formatWeightShort(item.weightGrams)} × ${item.qty})`;
-    const nameLines = doc.splitTextToSize(itemLabel, 95);
-    doc.text(nameLines, 28, y);
-    doc.text(String(item.qty), 132, y);
-    doc.text(`Rs.${item.unitPrice}`, 150, y);
-    doc.text(`Rs.${item.lineTotal}`, 172, y);
-    y += Math.max(nameLines.length * 5, 7) + 2;
+    doc.text(String(idx + 1), colNo, y);
+    doc.text(nameLines, colDesc, y);
+    if (pack) {
+      doc.setFontSize(8);
+      doc.setTextColor(110, 110, 110);
+      doc.text(pack, colDesc, y + nameLines.length * 5);
+      doc.setFontSize(10);
+      doc.setTextColor(60, 60, 60);
+    }
+    doc.text(String(item.qty), colQty, y, { align: 'right' });
+    doc.text(`Rs.${item.unitPrice}`, colRate, y, { align: 'right' });
+    doc.text(`Rs.${item.lineTotal}`, colAmt, y, { align: 'right' });
+    y += rowHeight;
   });
 
   y += 4;
@@ -307,24 +333,24 @@ export function downloadPdfReceipt(order, { autoSave = true } = {}) {
   doc.setFontSize(10);
   doc.setTextColor(60, 60, 60);
   doc.text('Subtotal:', 115, y);
-  doc.text(`Rs.${order.subtotal}.00`, 172, y);
+  doc.text(`Rs.${order.subtotal}.00`, colAmt, y, { align: 'right' });
   y += 7;
   doc.text('Total order weight:', 15, y);
-  doc.text(order.totalWeightLabel || formatWeightFull(order.totalWeightGrams), 172, y);
+  doc.text(order.totalWeightLabel || formatWeightFull(order.totalWeightGrams), colAmt, y, { align: 'right' });
   y += 7;
   const shippingLine = order.isCalculatedAtDispatch
     ? 'Shipping: To be calculated'
     : `Shipping (${order.shippingLabel}):`;
   doc.text(shippingLine, 15, y);
   if (!order.isCalculatedAtDispatch) {
-    doc.text(`Rs.${order.shippingFee}.00`, 172, y);
+    doc.text(`Rs.${order.shippingFee}.00`, colAmt, y, { align: 'right' });
   }
   y += 8;
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(12);
   doc.setTextColor(...brown);
   doc.text(order.isCalculatedAtDispatch ? 'TOTAL (excl. intl. freight):' : 'TOTAL AMOUNT DUE:', 115, y);
-  doc.text(`Rs.${order.total}.00`, 172, y);
+  doc.text(`Rs.${order.total}.00`, colAmt, y, { align: 'right' });
   y += 12;
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
@@ -342,23 +368,11 @@ export function downloadPdfReceipt(order, { autoSave = true } = {}) {
 }
 
 /**
- * Full checkout: PDF for customer + WhatsApp invoice to kitchen desk + WhatsApp copy to customer.
- * Kitchen desk is chosen from pin code (domestic vs international).
+ * Full checkout: PDF for the customer + one short WhatsApp invoice to the kitchen desk.
  */
 export function processFullInvoiceCheckout(order) {
   downloadPdfReceipt(order);
-
-  const kitchenMsg = buildWhatsAppInvoiceMessage(order);
-  window.open(getWhatsAppCheckoutUrl(order.whatsappNumber, kitchenMsg), '_blank');
-
-  const customerWa = normalizeCustomerWhatsAppNumber(order.phone, order.shippingZone);
-  if (customerWa) {
-    window.setTimeout(() => {
-      const customerMsg = buildCustomerWhatsAppMessage(order);
-      window.open(getWhatsAppCheckoutUrl(customerWa, customerMsg), '_blank');
-    }, 900);
-  }
-
+  window.open(getWhatsAppCheckoutUrl(order.whatsappNumber, buildWhatsAppInvoiceMessage(order)), '_blank');
   return order;
 }
 
