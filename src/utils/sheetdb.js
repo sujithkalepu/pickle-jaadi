@@ -2,7 +2,7 @@ import { SHEETDB_API_URL } from '../data/sheetdb';
 
 function formatItemList(items = []) {
   return items
-    .map((item) => `${item.name} (${item.weightLabel || item.unit || 'item'}) x${item.qty}`)
+    .map((item) => `${item.name}${item.nameTe ? ` (${item.nameTe})` : ''} (${item.weightLabel || item.unit || 'item'}) x${item.qty}`)
     .join(', ');
 }
 

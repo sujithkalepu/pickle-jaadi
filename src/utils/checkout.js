@@ -69,6 +69,7 @@ export function collectCheckoutOrderData(
   const items = cart.map((i) => ({
     id: i.id,
     name: i.name,
+    nameTe: i.nameTe || '',
     qty: i.qty,
     unitPrice: i.price,
     lineTotal: i.price * i.qty,
@@ -135,7 +136,7 @@ export function buildWhatsAppInvoiceMessage(order) {
   if (order.country) msg += `Country: ${order.country}\n`;
   msg += '\n*ORDER ITEMS*\n';
   order.items.forEach((item, idx) => {
-    msg += `${idx + 1}. ${item.name}\n`;
+    msg += `${idx + 1}. ${item.name}${item.nameTe ? ` (${item.nameTe})` : ''}\n`;
     msg += `   ${item.weightLabel} · ${item.garlic}\n`;
     msg += `   Weight: ${formatWeightShort(item.weightGrams)} × ${item.qty} = ${item.lineWeightLabel || formatWeightFull(item.lineWeightGrams)}\n`;
     msg += `   Qty: ${item.qty} x Rs.${item.unitPrice} = *Rs.${item.lineTotal}*\n`;
@@ -288,7 +289,7 @@ export function downloadPdfReceipt(order, { autoSave = true } = {}) {
     }
     doc.setTextColor(60, 60, 60);
     doc.text(String(idx + 1), 18, y);
-    const itemLabel = `${item.name} (${item.weightLabel}, ${item.garlic}, ${formatWeightShort(item.weightGrams)} × ${item.qty})`;
+    const itemLabel = `${item.name}${item.nameTe ? ` (${item.nameTe})` : ''} (${item.weightLabel}, ${item.garlic}, ${formatWeightShort(item.weightGrams)} × ${item.qty})`;
     const nameLines = doc.splitTextToSize(itemLabel, 95);
     doc.text(nameLines, 28, y);
     doc.text(String(item.qty), 132, y);

@@ -129,17 +129,20 @@ export function StoreProvider({ children }) {
   const matchesSearch = (item) => {
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
-    return `${item.name} ${item.desc}`.toLowerCase().includes(q);
+    return `${item.name} ${item.nameTe || ''} ${item.desc}`.toLowerCase().includes(q) || Boolean(item.nameTe && item.nameTe.includes(searchQuery.trim()));
   };
 
-  const addToCart = ({ id, name, price, weightGrams, weightLabel, garlic }) => {
+  const addToCart = ({ id, name, price, weightGrams, weightLabel, garlic, nameTe }) => {
+    const catalog = productMap[id];
+    const resolvedName = name || catalog?.name;
+    const resolvedTe = nameTe || catalog?.nameTe || '';
     const cartKey = makeCartKey(id, weightGrams, garlic);
     setCart((prev) => {
       const match = prev.find((i) => i.cartKey === cartKey);
       if (match) {
         return prev.map((i) => (i.cartKey === cartKey ? { ...i, qty: i.qty + 1 } : i));
       }
-      return [...prev, { cartKey, id, name, price, qty: 1, weightGrams, weightLabel, garlic }];
+      return [...prev, { cartKey, id, name: resolvedName, nameTe: resolvedTe, price, qty: 1, weightGrams, weightLabel, garlic }];
     });
   };
 

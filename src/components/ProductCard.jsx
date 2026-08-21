@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useStore } from '../context/StoreContext';
 import { GARLIC_OPTIONS, getBaseGrams, getPriceForWeight, getWeightOptions, makeCartKey } from '../utils/productPricing';
+import ProductName from './ProductName';
 
 export default function ProductCard({ item }) {
   const { toggleWishlist, isWishlisted, addToCart, updateCartQty, getCartQtyForVariant, matchesSearch } = useStore();
@@ -21,6 +22,7 @@ export default function ProductCard({ item }) {
       wishKey,
       id: item.id,
       name: item.name,
+      nameTe: item.nameTe,
       price: unitPrice,
       weightGrams,
       weightLabel: selectedWeight.label,
@@ -33,6 +35,7 @@ export default function ProductCard({ item }) {
     addToCart({
       id: item.id,
       name: item.name,
+      nameTe: item.nameTe,
       price: unitPrice,
       weightGrams,
       weightLabel: selectedWeight.label,
@@ -69,7 +72,7 @@ export default function ProductCard({ item }) {
         </button>
         {!imgFailed ? (
           <img
-            src={`/products/${item.id}.png`}
+            src={`${item.image || `/products/${item.id}-v9.png`}?v=9`}
             alt={item.name}
             className="product-card-image"
             loading="lazy"
@@ -93,7 +96,13 @@ export default function ProductCard({ item }) {
         )}
       </div>
       <div className="flex-1">
-        <h3 className="text-xs font-black text-[var(--heritageBrown)] leading-snug">{item.name}</h3>
+        <ProductName
+          as="h3"
+          name={item.name}
+          nameTe={item.nameTe}
+          className="text-xs font-black text-[var(--heritageBrown)]"
+          teClassName="text-[11px] font-semibold"
+        />
         <p className="text-[11px] text-gray-400 mt-1 leading-normal line-clamp-2">{item.desc}</p>
       </div>
 

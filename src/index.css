@@ -20,6 +20,10 @@ body {
   font-family: 'Playfair Display', serif;
 }
 
+.font-telugu {
+  font-family: 'Noto Sans Telugu', 'Plus Jakarta Sans', sans-serif;
+}
+
 @keyframes heartBeatPulse {
   0% { transform: scale(1); }
   14% { transform: scale(1.15); }

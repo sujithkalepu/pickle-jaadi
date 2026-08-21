@@ -3,6 +3,7 @@ import { formatShippingLine } from '../data/shipping';
 import { formatWeightShort, getLineWeightGrams } from '../utils/productPricing';
 import { INDIAN_STATES, SHIPPING_COUNTRIES } from '../data/addressOptions';
 import InternationalNotice from './InternationalNotice';
+import ProductName from './ProductName';
 
 const fieldClass = 'w-full border rounded px-2 py-1.5 text-xs focus:outline-none focus:border-[var(--heritageGold)] font-medium bg-white';
 
@@ -191,7 +192,12 @@ export function CartDrawer() {
             <div key={i.cartKey} className="flex justify-between items-start border-b pb-2 text-xs gap-3">
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5 flex-wrap">
-                  <div className="font-bold text-stone-900 leading-snug">{i.name}</div>
+                  <ProductName
+                    name={i.name}
+                    nameTe={i.nameTe}
+                    className="font-bold text-stone-900 min-w-0"
+                    teClassName="text-[10px] font-semibold"
+                  />
                   <span className="inline-flex items-center rounded-full bg-[#F6F3EC] border border-stone-200 px-1.5 py-0.5 text-[8px] font-black uppercase tracking-wider text-[var(--heritageBrown)]">
                     Weight {formatWeightShort(i.weightGrams)}
                   </span>
@@ -463,7 +469,7 @@ export function WishlistDrawer() {
               <div className="flex gap-3">
                 <div className="w-14 h-14 rounded-lg bg-[#F6F3EC] border border-gray-100 overflow-hidden shrink-0 flex items-center justify-center">
                   <img
-                    src={`/products/${item.id}.png`}
+                    src={`${item.image || `/products/${item.id}-v9.png`}?v=9`}
                     alt={item.name}
                     className="w-full h-full object-cover"
                     onError={(e) => {
@@ -474,7 +480,12 @@ export function WishlistDrawer() {
                   <span className="hidden text-xl items-center justify-center w-full h-full">{item.emoji || '🫙'}</span>
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="font-bold text-xs text-stone-900 leading-snug">{item.name}</div>
+                  <ProductName
+                    name={item.name}
+                    nameTe={item.nameTe}
+                    className="font-bold text-xs text-stone-900"
+                    teClassName="text-[10px] font-semibold"
+                  />
                   <div className="mt-1.5 space-y-1">
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[10px]">
                       <span className="font-black text-[var(--heritageBrown)]">₹{item.price}</span>
@@ -496,6 +507,7 @@ export function WishlistDrawer() {
                   onClick={() => addToCart({
                     id: item.id,
                     name: item.name,
+                    nameTe: item.nameTe,
                     price: item.price,
                     weightGrams: item.weightGrams,
                     weightLabel: item.weightLabel,
